@@ -20,10 +20,10 @@ library(tidyverse)
 
 
 ```{r}
-api_key <- "JuNNkm5cm5FscWK9jgMd1eGZw"
-api_secret_key <- "ZqIpbJpBRTEkXZbAaVarrnC4I7cSDDQsuAEkKgnRjhAmRmSCjI"
-access_token <- "788757625748029440-NYsQVmb6iroaCObtUTeyUCTxtJBmQae"
-access_token_secret <- "0zZe9UKhnsEKjNfYi7IIS0EWA9VyglS5NobzIbiYofWRi"
+api_key <- "0000"
+api_secret_key <- "0000"
+access_token <- "0000"
+access_token_secret <- "0000"
 
 token <- create_token(
   app = "Hw9-alligators",
