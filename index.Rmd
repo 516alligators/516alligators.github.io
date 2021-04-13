@@ -9,22 +9,53 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Analysis
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Importing rtweet.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r, warning = FALSE, message = FALSE}
+library(rtweet)
+library(tidyverse)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r}
+api_key <- "JuNNkm5cm5FscWK9jgMd1eGZw"
+api_secret_key <- "ZqIpbJpBRTEkXZbAaVarrnC4I7cSDDQsuAEkKgnRjhAmRmSCjI"
+access_token <- "788757625748029440-NYsQVmb6iroaCObtUTeyUCTxtJBmQae"
+access_token_secret <- "0zZe9UKhnsEKjNfYi7IIS0EWA9VyglS5NobzIbiYofWRi"
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+token <- create_token(
+  app = "Hw9-alligators",
+  consumer_key = api_key,
+  consumer_secret = api_secret_key,
+  access_token = access_token,
+  access_secret = access_token_secret)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Getting tweets
+
+```{r}
+# Run these two lines to get the tweets 
+# and then save them as a csv for future use
+# tiktok <- get_timeline("tiktok_us", n=3200)
+# tiktok %>% write_as_csv('tiktok.csv')
+# 
+# facebook <- get_timeline("Facebook", n=3200)
+# facebook %>% write_as_csv("facebook.csv")
+
+tiktok <-
+  read_csv('tiktok.csv')
+
+facebook <-
+  read_csv('facebook.csv')
+
+tiktok %>% head()
+
+facebook %>% head()
+```
+
+```{r}
+
+```
+
