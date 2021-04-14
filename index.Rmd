@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Analysis
 
-Importing rtweet.
+Loading packages.
 
 ```{r, warning = FALSE, message = FALSE}
 library(rtweet)
@@ -19,7 +19,7 @@ library(tidyverse)
 ```
 
 
-```{r}
+```{r, include = FALSE, message = FALSE, warning = FALSE, echo = FALSE}
 api_key <- "0000"
 api_secret_key <- "0000"
 access_token <- "0000"
@@ -49,10 +49,6 @@ tiktok <-
 
 facebook <-
   read_csv('facebook.csv')
-
-tiktok %>% head()
-
-facebook %>% head()
 ```
 
 ```{r}
