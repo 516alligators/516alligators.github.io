@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Introduction
+We will be examining the difference in Tweet communications between TikTok and Facebook. These are two popular social media platforms but with very different target audiences, thus the two brands could differ in their communication styles and language.
 
 ## Analysis
 
@@ -159,18 +161,42 @@ tiktok_words %>%
 ```{r}
 fb_sentiment <-    
  inner_join(fb_words, nrc, by = "word") %>% 
-            group_by(sentiment)  %>% 
-            head(10)
+            group_by(sentiment)  
 
 tiktok_sentiment <-    
  inner_join(tiktok_words, nrc, by = "word") %>% 
-            group_by(sentiment)  %>% 
-            head(10)
+            group_by(sentiment) 
 
 fb_words %>% head()
 ```
 
+Here we compare the sentiment between Facebook and TikTok. It looks like Facebook uses more trust words while TikTok uses more words that reflect anticipation.
 ```{r}
+fb_sentiment_analysis <- fb_sentiment %>% 
+  count(word, sentiment) %>% 
+  group_by(sentiment)
+
+fb_sentiment_analysis %>%  
+  top_n(15) %>% 
+  ggplot(aes(x = sentiment, y = n )) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  ylab("Frequency") +
+  xlab("Sentiment") +
+  labs(title="Facebook Sentiment")
+
+tiktok_sentiment_analysis <- tiktok_sentiment %>% 
+  count(word, sentiment) %>% 
+  group_by(sentiment)
+
+tiktok_sentiment_analysis %>%  
+  top_n(15) %>% 
+  ggplot(aes(x = sentiment, y = n )) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  ylab("Frequency") +
+  xlab("Sentiment") +
+  labs(title="TikTok Sentiment")
 
 ```
 
