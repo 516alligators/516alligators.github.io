@@ -171,6 +171,7 @@ fb_words %>% head()
 ```
 
 Here we compare the sentiment between Facebook and TikTok. It looks like Facebook uses more trust words while TikTok uses more words that reflect anticipation.
+
 ```{r}
 fb_sentiment_analysis <- fb_sentiment %>% 
   count(word, sentiment) %>% 
@@ -199,4 +200,27 @@ tiktok_sentiment_analysis %>%
   labs(title="TikTok Sentiment")
 
 ```
+```{r}
+fb_sentiment_analysis %>% filter(!sentiment %in% c("positive", "negative")) %>% 
+  mutate(sentiment = reorder(sentiment, -n),
+         word = reorder(word, -n)) %>% top_n(10) -> fb_sentiment_analysis2
 
+ggplot(fb_sentiment_analysis2, aes(x=word, y=n, fill = n)) +
+  facet_wrap(~ sentiment, scales = "free")+ 
+  geom_bar(stat ="identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(y="count", title="Facebook Sentiment")
+
+
+tiktok_sentiment_analysis %>% filter(!sentiment %in% c("positive", "negative")) %>% 
+  mutate(sentiment = reorder(sentiment, -n),
+         word = reorder(word, -n)) %>% top_n(10) -> tiktok_sentiment_analysis2
+
+ggplot(tiktok_sentiment_analysis2, aes(x=word, y=n, fill = n)) +
+  facet_wrap(~ sentiment, scales = "free")+ 
+  geom_bar(stat ="identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(y="count", title="Tik Tok Sentiment")
+
+
+```
