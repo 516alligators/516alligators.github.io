@@ -80,6 +80,8 @@ tiktok %>%
   scale_y_continuous(labels = percent_format()) +
   geom_line() +
   ggtitle('Tiktok Source Breakdown by Hour')
+
+
 ```
 
 
@@ -224,3 +226,56 @@ ggplot(tiktok_sentiment_analysis2, aes(x=word, y=n, fill = n)) +
 
 
 ```
+We also want to visualize common words on Facebook and Tiktok by wordccloud
+
+```{r}
+facebook_cloud <- fb_words  %>% count(word) %>% arrange(-n)
+wordcloud(facebook_cloud$word, facebook_cloud$n, max.words = 200, colors = c("#00B2FF", "red", "#FF0099", "#6600CC", "green", "orange", "blue", "brown"))
+
+tiktok_cloud <- tiktok_words  %>% count(word) %>% arrange(-n)
+wordcloud(tiktok_cloud$word, tiktok_cloud$n, max.words = 200, colors = c("#00B2FF", "red", "#FF0099", "#6600CC", "green", "orange", "blue", "brown"))
+
+
+```
+
+
+Next, we examine texts on Facebook and Tiktok to see their positive-negative score by using afinn lexicon 
+
+```{r}
+get_sentiments ("afinn") -> afinn
+library(wordcloud)
+
+```
+
+```{r}
+fb_afinn <-    
+ inner_join(fb_words, afinn, by = "word") 
+
+tiktok_afinn <-    
+ inner_join(tiktok_words, afinn, by = "word")
+
+fb_afinn %>% summarise(mean_fb_afinn = mean(value))
+tiktok_afinn %>% summarise(mean_tt_afinn = mean(value))
+
+
+```
+
+Mean of Facebook's afinn value is 0.79 while mean of Tiktok's afinn value is 1.704293. In general, texts on Tiktok are more positive than those on Facebook. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
