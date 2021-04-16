@@ -172,7 +172,7 @@ tiktok_sentiment <-
 fb_words %>% head()
 ```
 
-Here we compare the sentiment between Facebook and TikTok. It looks like Facebook uses more trust words while TikTok uses more words that reflect anticipation.
+Here we compare the sentiment between Facebook and TikTok. It looks like discussions surrounding Facebook uses more trust words while topics about TikTok uses more words that reflect anticipation.
 
 ```{r}
 fb_sentiment_analysis <- fb_sentiment %>% 
