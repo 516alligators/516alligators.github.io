@@ -23,6 +23,14 @@ library(scales)
 library(tidytext)
 library(wordcloud)
 library(textdata)
+
+library(caret)       # for general model fitting
+library(rpart)       # for fitting decision trees
+library(rpart.plot)
+library(ipred)       # for fitting bagged decision trees
+library(ranger)
+library(gbm)
+library(vip)
 ```
 
 
@@ -86,6 +94,28 @@ tiktok %>%
 
 ```
 
+
+```{r}
+fb_wordcounts <- 
+  facebook %>%
+  mutate(tweetLength = str_length(text)) %>% 
+  filter(tweetLength < 500)
+
+tiktok_wordcounts <- 
+  tiktok %>%
+  mutate(tweetLength = str_length(text)) %>% 
+  filter(tweetLength < 500)
+
+writeLines(c(paste0("Facebook Mean Tweet Length: ", 
+                  mean(fb_wordcounts$tweetLength)), 
+           paste0("TikTok Mean Tweet Length: ", 
+                  mean(tiktok_wordcounts$tweetLength))))
+
+hist(tiktok_wordcounts$tweetLength)
+
+hist(fb_wordcounts$tweetLength)
+
+```
 
 ```{r}
 fb_picture_counts <- 
@@ -268,4 +298,225 @@ tiktok_afinn %>% summarise(mean_tt_afinn = mean(value))
 Mean of Facebook's afinn value is 0.79 while mean of Tiktok's afinn value is 1.704293. In general, tweets from Tiktok are more positive than those on Facebook. 
 
 
+Here, we predict the user based on the tweet length and number of words for each sentiment. TikTok is encoded as 1, and Facebook is encoded as 0.
 
+```{r}
+fb_sentiment_counts <- 
+  fb_sentiment %>% 
+  group_by(status_id) %>% 
+  count(sentiment) %>% 
+  pivot_wider(id_cols = status_id, 
+              names_from = sentiment, 
+              values_from = n,
+              values_fill = 0)
+
+tiktok_sentiment_counts <- 
+  tiktok_sentiment %>% 
+  group_by(status_id) %>% 
+  count(sentiment) %>% 
+  pivot_wider(id_cols = status_id, 
+              names_from = sentiment, 
+              values_from = n,
+              values_fill = 0)
+
+tiktok_feature_selection <- 
+  tiktok_wordcounts %>% 
+  mutate(user = 1) %>% 
+  left_join(tiktok_sentiment_counts, 
+            by="status_id")
+
+facebook_feature_selection <-
+  fb_wordcounts %>% 
+  mutate(user = 0) %>% 
+  left_join(fb_sentiment_counts, 
+            by="status_id")
+
+both_users <- 
+  tiktok_feature_selection %>% 
+  rbind(facebook_feature_selection) %>%
+  mutate_if(is.numeric,coalesce,0)
+
+set.seed(123)
+index <- 
+  createDataPartition(both_users$user,
+                      p = 0.8, list = FALSE)
+
+for_decisiontree <-
+  both_users %>% select(-1,-2,-3,-4)
+
+train <- for_decisiontree[index, ]
+test  <- for_decisiontree[-index, ]
+
+simple_model <- rpart(user ~ ., data = train, method = "class")
+rpart.plot(simple_model, yesno = 2)
+```
+
+```{r, warning = FALSE}
+set.seed(123)
+bagging_model <- train(
+  user ~ .,
+  data = train,
+  method = "treebag",
+  trControl = trainControl(method = "oob"),
+  keepX = T,
+  nbagg = 100,
+  importance = "impurity",
+  control = rpart.control(minsplit = 2, cp = 0)
+)
+
+n_features <- length(setdiff(names(train), "user"))
+
+rf_model <- ranger(
+  user ~ .,
+  data = train,
+  mtry = floor(n_features * 0.5),
+  respect.unordered.factors = "order",
+  importance = "permutation",
+  seed = 123
+)
+
+
+set.seed(123)  # for reproducibility
+gbm_model <- gbm(
+  formula = user ~ .,
+  data = train,
+  distribution = "gaussian",  # SSE loss function
+  n.trees = 1000,
+  shrinkage = 0.05,
+  interaction.depth = 5,
+  n.minobsinnode = 4,
+  cv.folds = 10
+)
+```
+
+```{r}
+actual_train <- train$user
+
+simple_pred_train <- 
+  predict(simple_model, newdata = train) %>% 
+  as_tibble() %>% 
+  select(2) %>% 
+  unlist() %>% 
+  as.vector()
+rss_simple_train <- sum((actual_train-simple_pred_train)^2)
+
+bagging_pred_train <- 
+  predict(bagging_model, newdata = train) %>% 
+  as.vector()
+rss_bagging_train <- sum((actual_train-bagging_pred_train)^2)
+
+rf_pred_train <- predict(rf_model, data = train, seed = 123, verbose = T)[1] %>% unlist()
+rss_rf_train <- sum((actual_train-rf_pred_train)^2)
+
+gb_pred_train <- predict(gbm_model, newdata = train)
+rss_gb_train <- sum((actual_train-gb_pred_train)^2)
+
+cat(paste0("Residual Sum of Squares on Training Set\n",
+           "\nSimple model: ", rss_simple_train, 
+           "\nBagged model: ", rss_bagging_train, 
+           "\nRandom forests model: ", rss_rf_train, 
+           "\nGradient boost model: ", rss_gb_train))
+```
+
+
+```{r}
+actual_test <- test$user
+
+simple_pred_test <- 
+  predict(simple_model, newdata = test) %>% 
+  as_tibble() %>% 
+  select(2) %>% 
+  unlist() %>% 
+  as.vector()
+rss_simple_test <- sum((actual_test-simple_pred_test)^2)
+
+bagging_pred_test <- 
+  predict(bagging_model, newdata = test) %>% 
+  as.vector()
+rss_bagging_test <- sum((actual_test-bagging_pred_test)^2)
+
+rf_pred_test <- predict(rf_model, data = test, seed = 123, verbose = T)[1] %>% unlist() %>% as.vector()
+rss_rf_test <- sum((actual_test-rf_pred_test)^2)
+
+gb_pred_test <- predict(gbm_model, newdata = test)
+rss_gb_test <- sum((actual_test-gb_pred_test)^2)
+
+cat(paste0("Residual Sum of Squares on Test Set\n",
+           "\nSimple model: ", rss_simple_test, 
+           "\nBagged model: ", rss_bagging_test, 
+           "\nRandom forests model: ", rss_rf_test, 
+           "\nGradient boost model: ", rss_gb_test))
+```
+
+The random forests model performed the best on the test set even though it was only second best for the training set. However, that may be an indication that the bagging model was overfit, which caused it to perform much worse on the test set than the random forests model.
+
+
+## Evaluating Performance: Confusion Matrices
+
+Now, I produce confusion matrices for all tree-based methods---first evaluating their performance on the test set. Note again that a Tiktok tweet is encoded as 1, and a Facebook tweet is encoded as 0. The code is shown for the first matrix but not for subsequent ones for the sake of elegance.
+
+**Simple Model - Test Set:**
+
+```{r}
+simple_test_confusion <- 
+  confusionMatrix(data = factor(round(simple_pred_test)),
+                  reference = factor(actual_test), mode = "prec_recall")
+
+simple_test_errors <- 
+  simple_test_confusion$table[2] +
+  simple_test_confusion$table[3]
+
+simple_test_accuracy <-
+  as.numeric(simple_test_confusion$overall[1])
+
+simple_test_confusion
+```
+**Bagging Model - Test Set:**
+
+```{r, echo = FALSE}
+bagging_test_confusion <- 
+  confusionMatrix(data = factor(round(bagging_pred_test)), 
+                  reference = factor(actual_test), mode = "prec_recall")
+
+bagging_test_errors <- 
+  bagging_test_confusion$table[2] +
+  bagging_test_confusion$table[3]
+
+bagging_test_accuracy <-
+  as.numeric(bagging_test_confusion$overall[1])
+
+bagging_test_confusion
+```
+**Random Forests - Test Set:**
+
+```{r, echo = FALSE}
+rf_test_confusion <- 
+  confusionMatrix(data = factor(round(rf_pred_test)), 
+                  reference = factor(actual_test), mode = "prec_recall")
+
+rf_test_errors <- 
+  rf_test_confusion$table[2] +
+  rf_test_confusion$table[3]
+
+rf_test_accuracy <-
+  as.numeric(rf_test_confusion$overall[1])
+
+rf_test_confusion
+```
+
+**Gradient Boosting Model - Test Set:**
+
+```{r, echo = FALSE}
+gb_test_confusion <- 
+  confusionMatrix(data = factor(round(gb_pred_test)), 
+                  reference = factor(actual_test), mode = "prec_recall")
+
+gb_test_errors <- 
+  gb_test_confusion$table[2] +
+  gb_test_confusion$table[3]
+
+gb_test_accuracy <-
+  as.numeric(gb_test_confusion$overall[1])
+
+gb_test_confusion
+```
