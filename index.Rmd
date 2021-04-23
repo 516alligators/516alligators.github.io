@@ -8,14 +8,23 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-## Introduction
-We will be examining the difference in Tweet communications between TikTok and Facebook. These are two popular social media platforms in a similar industry but with very different target audiences, thus the two brands and their audiences could differ in their communication styles and language.
+## I. Introduction
 
-## Analysis
+Social media has been evolved and affected our lives in many aspects. In this assignment, we aim to have a closer look at the two most popular social media platforms: Tiktok and Facebook. These platforms are in a similar industry but with very different target audiences, thus the two brands and their audiences could differ in their communication styles and language. Understanding the language used in these platforms may lead to their business implications and directions. 
 
-Loading packages.
+Our research question focuses on whether there are differences in sentiments of tweet communications between Tiktok and Facebook account. 
+
+## II. Methodology
+
+Our method of sentiments analysis is text mining with R. 
+
+After getting tweets from twitter, we use basic tools of data exploration to transform, visualize, and examine different features of the datasets, such as source, time, length, and content (e.g, link and picture) of the tweets. 
+
+Next, we transform the datasets into tidy text format for sentiment analysis. The two main lexicons that we use are nrc and affin. 
+
 
 ```{r, warning = FALSE, message = FALSE}
+#Loading packages.
 library(rtweet)
 library(tidyverse)
 library(lubridate)
@@ -48,9 +57,12 @@ token <- create_token(
   access_secret = access_token_secret)
 ```
 
-Getting tweets
+
 
 ```{r, message = FALSE, warning = FALSE}
+
+#Getting tweets
+
 # Run these two lines to get the tweets 
 # and then save them as a csv for future use
 # tiktok <- get_timeline("tiktok_us", n=3200)
@@ -93,7 +105,7 @@ tiktok %>%
 
 
 ```
-
+These above figures indicate Tiktok/Facebook breakdown by hour. 
 
 ```{r}
 fb_wordcounts <- 
@@ -521,5 +533,14 @@ gb_test_accuracy <-
 
 gb_test_confusion
 ```
-## Conclusion
+
+
+## III. Results
+
+
+
+
+
+
+## IV. Conclusion
 Looking at the analyses, it seems that the Facebook and TikTok account and users tweet about these two social media platforms for different reasons. People tweeting about Facebook are likely to be reporting their account issues, which are associated with words such as "secure" and "trust." Whereas, people tweeting about TikTok seem to be participating in prize giveaways, which is associated with "anticipation" words such as "winning" and "tomorrow." Overall, these analyses make sense given the different demographics of the two social media platforms. 
