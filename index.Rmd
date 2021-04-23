@@ -565,3 +565,6 @@ In all, these results show us that the best model is a toss up between the Rando
 
 ## IV. Conclusion
 Looking at the analyses, it seems that the Facebook and TikTok account and users tweet about these two social media platforms for different reasons. People tweeting about Facebook are likely to be reporting their account issues, which are associated with words such as "secure" and "trust." Whereas, people tweeting about TikTok seem to be participating in prize giveaways, which is associated with "anticipation" words such as "winning" and "tomorrow." Overall, these analyses make sense given the different demographics of the two social media platforms. 
+
+## V. Contributions
+Ammar Plumber, Elaina Lin, Kim Nguyen, Meghan Aines, Ryan Karbowicz
