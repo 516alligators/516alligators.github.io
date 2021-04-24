@@ -9,4 +9,6 @@ navbar:
       href: HW9.html
     
 output:
-  tufte::tufte_html: default
+  html_document:
+    theme: simplex
+    highlight: textmate

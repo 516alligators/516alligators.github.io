@@ -4,4 +4,3 @@ author: "Ammar M. Plumber"
 ---
 
 I'm a grad student and researcher at Penn.
-
