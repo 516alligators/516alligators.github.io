@@ -510,6 +510,15 @@ Now, I produce confusion matrices and show residual sum of squares for all tree-
 **Simple Decision Tree - Training Set:**
 
 ```{r, echo = FALSE}
+actual_train <- train$user
+
+simple_pred_train <- 
+  predict(simple_model, newdata = train) %>% 
+  as_tibble() %>% 
+  select(2) %>% 
+  unlist() %>% 
+  as.vector()
+
 simple_train_confusion <- 
   confusionMatrix(data = factor(round(simple_pred_train)), 
                   reference = factor(actual_train), mode = "prec_recall")
@@ -527,6 +536,10 @@ simple_train_confusion
 **Bagging Method - Training Set:**
 
 ```{r, echo = FALSE}
+bagging_pred_train <- 
+  predict(bagging_model, newdata = train) %>% 
+  as.vector()
+
 bagging_train_confusion <- 
   confusionMatrix(data = factor(round(bagging_pred_train)), 
                   reference = factor(actual_train), mode = "prec_recall")
@@ -545,6 +558,12 @@ bagging_train_confusion
 **Random Forests Method - Training Set:**
 
 ```{r, echo = FALSE}
+rf_pred_train <- predict(rf_model, 
+                         data = train, 
+                         seed = 123, 
+                         verbose = T)[1] %>% 
+  unlist()
+
 rf_train_confusion <- 
   confusionMatrix(data = factor(round(rf_pred_train)), 
                   reference = factor(actual_train), mode = "prec_recall")
@@ -563,6 +582,8 @@ rf_train_confusion
 **Gradient Boosting Method - Training Set:**
 
 ```{r, echo = FALSE}
+gb_pred_train <- predict(gbm_model, newdata = train)
+
 gb_train_confusion <- 
   confusionMatrix(data = factor(round(gb_pred_train)), 
                   reference = factor(actual_train), mode = "prec_recall")
@@ -606,25 +627,9 @@ The rankings for accuracy on the training set are as follows:
 We show the residual sum of squares for all four models on the training set below.
 
 ```{r, warning = FALSE, message = FALSE}
-actual_train <- train$user
-
-simple_pred_train <- 
-  predict(simple_model, newdata = train) %>% 
-  as_tibble() %>% 
-  select(2) %>% 
-  unlist() %>% 
-  as.vector()
 rss_simple_train <- sum((actual_train-simple_pred_train)^2)
-
-bagging_pred_train <- 
-  predict(bagging_model, newdata = train) %>% 
-  as.vector()
 rss_bagging_train <- sum((actual_train-bagging_pred_train)^2)
-
-rf_pred_train <- predict(rf_model, data = train, seed = 123, verbose = T)[1] %>% unlist()
 rss_rf_train <- sum((actual_train-rf_pred_train)^2)
-
-gb_pred_train <- predict(gbm_model, newdata = train)
 rss_gb_train <- sum((actual_train-gb_pred_train)^2)
 
 cat(paste0("Residual Sum of Squares on Training Set\n",
@@ -643,6 +648,15 @@ Now, we show confusion matrices for the test set.
 **Simple Decision Tree - Test Set:**
 
 ```{r}
+actual_test <- test$user
+
+simple_pred_test <- 
+  predict(simple_model, newdata = test) %>% 
+  as_tibble() %>% 
+  select(2) %>% 
+  unlist() %>% 
+  as.vector()
+
 simple_test_confusion <- 
   confusionMatrix(data = factor(round(simple_pred_test)),
                   reference = factor(actual_test), mode = "prec_recall")
@@ -659,6 +673,10 @@ simple_test_confusion
 **Bagging Method - Test Set:**
 
 ```{r, echo = FALSE}
+bagging_pred_test <- 
+  predict(bagging_model, newdata = test) %>% 
+  as.vector()
+
 bagging_test_confusion <- 
   confusionMatrix(data = factor(round(bagging_pred_test)), 
                   reference = factor(actual_test), mode = "prec_recall")
@@ -675,6 +693,8 @@ bagging_test_confusion
 **Random Forests Method - Test Set:**
 
 ```{r, echo = FALSE}
+rf_pred_test <- predict(rf_model, data = test, seed = 123, verbose = T)[1] %>% unlist() %>% as.vector()
+
 rf_test_confusion <- 
   confusionMatrix(data = factor(round(rf_pred_test)), 
                   reference = factor(actual_test), mode = "prec_recall")
@@ -692,6 +712,8 @@ rf_test_confusion
 **Gradient Boosting Method - Test Set:**
 
 ```{r, echo = FALSE}
+gb_pred_test <- predict(gbm_model, newdata = test)
+
 gb_test_confusion <- 
   confusionMatrix(data = factor(round(gb_pred_test)), 
                   reference = factor(actual_test), mode = "prec_recall")
@@ -736,25 +758,9 @@ The rankings for accuracy on the test set are as follows:
 Now, we show the residual sum of squares for each model with respect to the test set.
 
 ```{r, message = FALSE, warning = FALSE}
-actual_test <- test$user
-
-simple_pred_test <- 
-  predict(simple_model, newdata = test) %>% 
-  as_tibble() %>% 
-  select(2) %>% 
-  unlist() %>% 
-  as.vector()
 rss_simple_test <- sum((actual_test-simple_pred_test)^2)
-
-bagging_pred_test <- 
-  predict(bagging_model, newdata = test) %>% 
-  as.vector()
 rss_bagging_test <- sum((actual_test-bagging_pred_test)^2)
-
-rf_pred_test <- predict(rf_model, data = test, seed = 123, verbose = T)[1] %>% unlist() %>% as.vector()
 rss_rf_test <- sum((actual_test-rf_pred_test)^2)
-
-gb_pred_test <- predict(gbm_model, newdata = test)
 rss_gb_test <- sum((actual_test-gb_pred_test)^2)
 
 cat(paste0("Residual Sum of Squares on Test Set\n",
@@ -770,5 +776,9 @@ In sum, it seems that the best model is the random forests model, with a test se
 
 
 # Conclusion
+
 Looking at the analyses, it seems that the Facebook and TikTok accounts have systematically different Twitter presences. Facebook seems to respond more frequently to user fears, which are associated with words such as “secure” and “trust.” Whereas, TikTok focuses on generating excitement and offer prize giveaways, which is associated with “anticipation” words such as “winning” and “tomorrow.” Differences in tweet length also possibly reflect on the preferences of the target audience; TikTok users are younger and less likely to consume written information (it is a video platform, after all), and the opposite is true for Facebook. In sum, our predictive endeavor was successful, and we unveiled a number of useful insights from it.
+
+# Contributions
+
 

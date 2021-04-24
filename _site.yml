@@ -1,0 +1,12 @@
+name: "Ammar M. Plumber"
+output_dir: "."
+navbar:
+  title: "Ammar M. Plumber"
+  left:
+    text: "Homework 9"
+    href: index.html
+
+output:
+  html_document:
+    theme: simplex
+    highlight: textmate
