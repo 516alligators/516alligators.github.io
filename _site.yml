@@ -10,5 +10,5 @@ navbar:
     
 output:
   html_document:
-    theme: simplex
-    highlight: textmate
+    theme: paper
+    highlight: tango

@@ -2,8 +2,7 @@
 title: "Homework 9 - Alligators"
 author: "Ammar Plumber, Elaina Lin, Kim Nguyen, Meghan Aines, Ryan Karbowicz"
 date: "4/13/2021"
-output:
-  tufte::tufte_html: default
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
