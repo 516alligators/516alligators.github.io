@@ -1,7 +1,7 @@
 ---
 title: "About"
-author: "Elaina"
+author: "Ammar M. Plumber"
 ---
 
-Hi, I'm an Master of Behavioral and Decision Sciences student at Penn taking BDS516 - Data Science and Quantitative Modelling.
+I'm a grad student and researcher at Penn.
 
