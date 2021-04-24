@@ -8,12 +8,14 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-## Introduction
-We will be examining the difference in Tweet communications between TikTok and Facebook. These are two popular social media platforms but with very different target audiences, thus the two brands could differ in their communication styles and language.
 
-## Analysis
+# Introduction
 
-Loading packages.
+We will be examining the difference in tweet communications between TikTok and Facebook. These are two popular social media platforms but with very different target audiences. Thus, the two brands may differ in their communication styles and language. We set out to identify the particular ways in which they differ and to build a model that can attribute each tweet to the correct user.
+
+# Preliminary Analysis
+
+First, we import all non-base packages to be used in this analysis.
 
 ```{r, warning = FALSE, message = FALSE}
 library(rtweet)
@@ -31,6 +33,8 @@ library(ipred)       # for fitting bagged decision trees
 library(ranger)
 library(gbm)
 library(vip)
+
+library(kableExtra)
 ```
 
 
@@ -48,7 +52,7 @@ token <- create_token(
   access_secret = access_token_secret)
 ```
 
-Getting tweets
+Now, we import the tweets that we pulled using the get_timeline() function and saved to a CSV file. There are ~3200 tweets from each user in our dataset.
 
 ```{r, message = FALSE, warning = FALSE}
 # Run these two lines to get the tweets 
@@ -72,6 +76,8 @@ nrc <- read_rds("nrc.rds")
 facebook %>% head()
 ```
 
+Now, for each user, we produce a line chart showing the percent of all tweets from each source by hour.
+
 ```{r}
 facebook %>%
   count(source, hour = hour(with_tz(created_at, "EST"))) %>%
@@ -90,12 +96,13 @@ tiktok %>%
   scale_y_continuous(labels = percent_format()) +
   geom_line() +
   ggtitle('Tiktok Source Breakdown by Hour')
-
-
 ```
 
+We see that the vast majority of Facebook's tweets are put out using Khoros Publishing between the hours of 10 AM and 8 PM. TikTok publishes most of its tweets through the Twitter Web App and Fan Experiences Platform---usually between 10 AM and 8 PM, like Facebook.
 
-```{r}
+We want to see if both users' tweets tend to differ in length, so we create a histogram for each user.
+
+```{r, message = FALSE, warning = FALSE}
 fb_wordcounts <- 
   facebook %>%
   mutate(tweetLength = str_length(text)) %>% 
@@ -111,11 +118,14 @@ writeLines(c(paste0("Facebook Mean Tweet Length: ",
            paste0("TikTok Mean Tweet Length: ", 
                   mean(tiktok_wordcounts$tweetLength))))
 
-hist(tiktok_wordcounts$tweetLength)
+hist(tiktok_wordcounts$tweetLength, main = "TikTok - Histogram of Tweet Lengths")
 
-hist(fb_wordcounts$tweetLength)
-
+hist(fb_wordcounts$tweetLength, main = "Facebook - Histogram of Tweet Lengths")
 ```
+
+As we see, TikTok's tweet lengths are right-skewed, with most tweets being around 100 words long. Facebook, on the other hand, seems to post longer tweets, with a more normal distribution centered around 150 words long. Tweet length seems like a useful feature to include in our predictive model.
+
+Next, we look at whether there is a difference in the share of Tweets that include pictures.
 
 ```{r}
 fb_picture_counts <- 
@@ -130,15 +140,24 @@ tiktok_picture_counts <-
   count(picture = ifelse(str_detect(text, "t.co"),
                          "Picture/link", "No picture/link"))
 
-barplot(fb_picture_counts$n, 
-        names.arg=c("No picture/link", "Picture/link"),
-        main = "Facebook # of Tweets with and without pics/link")
+fb_pct_pics <- 
+  fb_picture_counts %>% filter(picture == "Picture/link") %>% 
+  select(2) %>% as.numeric() / sum(fb_picture_counts$n) * 100
 
-barplot(tiktok_picture_counts$n, 
-        names.arg=c("No picture/link", "Picture/link"),
-        main = "Tiktok # of Tweets with and without pics/link")
+tiktok_pct_pics <-
+  tiktok_picture_counts %>% filter(picture == "Picture/link") %>% 
+  select(2) %>% as.numeric() / sum(tiktok_picture_counts$n) * 100
 
+cat(paste0("Percent of Tweets with pictures/link\n",
+           "\nFacebook: ", round(fb_pct_pics, 2), 
+           "\nTikTok: ", round(tiktok_pct_pics, 2)))
 ```
+
+~86% of Facebook's tweets contain pictures/links, while only ~52% of TikTok's tweets contain pictures/links. This could be another useful predictor to include in our model.
+
+# Sentiment Analysis
+
+Now, we split the tweets into tokens so that we can perform sentiment analysis on them.
 
 ```{r}
 reg <- "([^A-Za-z\\d#@']|'(?![A-Za-z\\d#@]))"
@@ -172,6 +191,8 @@ tiktok_words <-
 head(fb_words)
 ```
 
+We produce two horizontal bar graphs that show the most common words along with a wordcloud for each user.
+
 ```{r}
 fb_words %>%
   count(word, sort = TRUE) %>%
@@ -180,7 +201,8 @@ fb_words %>%
   ggplot(aes(x = word, y = n)) +
   geom_bar(stat = "identity") +
   ylab("Occurrences") +
-  coord_flip()
+  coord_flip() + 
+  ggtitle("Facebook Word Frequency")
 
 tiktok_words %>%
   count(word, sort = TRUE) %>%
@@ -189,25 +211,53 @@ tiktok_words %>%
   ggplot(aes(x = word, y = n)) +
   geom_bar(stat = "identity") +
   ylab("Occurrences") +
-  coord_flip()
+  coord_flip() +
+  ggtitle("TikTok Word Frequency")
+
+facebook_cloud <- 
+  fb_words  %>% 
+  count(word) %>% 
+  arrange(-n)
+
+wordcloud(facebook_cloud$word, 
+          facebook_cloud$n, max.words = 200, 
+          colors = c("#00B2FF", "red", 
+                     "#FF0099", "#6600CC", 
+                     "green", "orange", 
+                     "blue", "brown"))
+
+tiktok_cloud <- 
+  tiktok_words  %>% 
+  count(word) %>% 
+  arrange(-n)
+
+wordcloud(tiktok_cloud$word, 
+          tiktok_cloud$n, max.words = 200, 
+          colors = c("#00B2FF", "red", 
+                     "#FF0099", "#6600CC", 
+                     "green", "orange", 
+                     "blue", "brown"))
 ```
 
+We join the NRC Word-Emotion Association Lexicon to our data, which will allow us to identify words associated with eight basic emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive).
+
 ```{r}
-fb_sentiment <-    
- inner_join(fb_words, nrc, by = "word") %>% 
-            group_by(sentiment)  
+fb_sentiment <-
+  inner_join(fb_words, nrc, by = "word") %>% 
+  group_by(sentiment)  
 
-tiktok_sentiment <-    
- inner_join(tiktok_words, nrc, by = "word") %>% 
-            group_by(sentiment) 
+tiktok_sentiment <-
+  inner_join(tiktok_words, nrc, by = "word") %>% 
+  group_by(sentiment) 
 
-fb_words %>% head()
+fb_sentiment %>% head()
 ```
 
-Here we compare the sentiment between Facebook and TikTok. It looks like discussions surrounding Facebook uses more trust words while topics about TikTok uses more words that reflect anticipation.
+Here, we compare Facebook's and TikTok's sentiments.
 
-```{r}
-fb_sentiment_analysis <- fb_sentiment %>% 
+```{r, message = FALSE, warning = FALSE}
+fb_sentiment_analysis <- 
+  fb_sentiment %>% 
   count(word, sentiment) %>% 
   group_by(sentiment)
 
@@ -220,7 +270,8 @@ fb_sentiment_analysis %>%
   xlab("Sentiment") +
   labs(title="Facebook Sentiment")
 
-tiktok_sentiment_analysis <- tiktok_sentiment %>% 
+tiktok_sentiment_analysis <- 
+  tiktok_sentiment %>% 
   count(word, sentiment) %>% 
   group_by(sentiment)
 
@@ -234,7 +285,10 @@ tiktok_sentiment_analysis %>%
   labs(title="TikTok Sentiment")
 
 ```
-```{r}
+
+It looks like Facebook's tweets use more trust words while TikTok uses more words that reflect anticipation. We now show specifically which words are conveying each of these observed sentiments.
+
+```{r, message = FALSE, warning = FALSE}
 fb_sentiment_analysis %>% filter(!sentiment %in% c("positive", "negative")) %>% 
   mutate(sentiment = reorder(sentiment, -n),
          word = reorder(word, -n)) %>% top_n(10) -> fb_sentiment_analysis2
@@ -243,7 +297,7 @@ ggplot(fb_sentiment_analysis2, aes(x=word, y=n, fill = n)) +
   facet_wrap(~ sentiment, scales = "free")+ 
   geom_bar(stat ="identity") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
-  labs(y="count", title="Facebook Sentiment")
+  labs(y="count", title="Facebook Sentiment Words")
 
 
 tiktok_sentiment_analysis %>% filter(!sentiment %in% c("positive", "negative")) %>% 
@@ -254,24 +308,14 @@ ggplot(tiktok_sentiment_analysis2, aes(x=word, y=n, fill = n)) +
   facet_wrap(~ sentiment, scales = "free")+ 
   geom_bar(stat ="identity") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
-  labs(y="count", title="Tik Tok Sentiment")
-
-
-```
-We also want to visualize common words on Facebook and Tiktok by wordccloud
-
-```{r, warning = FALSE, message = FALSE}
-facebook_cloud <- fb_words  %>% count(word) %>% arrange(-n)
-wordcloud(facebook_cloud$word, facebook_cloud$n, max.words = 200, colors = c("#00B2FF", "red", "#FF0099", "#6600CC", "green", "orange", "blue", "brown"))
-
-tiktok_cloud <- tiktok_words  %>% count(word) %>% arrange(-n)
-wordcloud(tiktok_cloud$word, tiktok_cloud$n, max.words = 200, colors = c("#00B2FF", "red", "#FF0099", "#6600CC", "green", "orange", "blue", "brown"))
+  labs(y="count", title="Tik Tok Sentiment Words")
 
 
 ```
 
+Next, we examine texts on Facebook and Tiktok to see their positive-negative score by using the AFINN sentiment lexicon, a list of English terms manually rated for valence with an integer between -5 (negative) and +5 (positive) by Finn Årup Nielsen between 2009 and 2011.
 
-Next, we examine texts on Facebook and Tiktok to see their positive-negative score by using afinn lexicon 
+We use this lexicon to compute mean positivity scores for all words tweeted by each user.
 
 ```{r, message = FALSE, warning = FALSE}
 # run this to get afinn lexicon and save it as a csv
@@ -280,27 +324,67 @@ Next, we examine texts on Facebook and Tiktok to see their positive-negative sco
 #afinn %>% write_as_csv("afinn.csv")
 
 afinn <- read_csv('afinn.csv')
-```
 
-```{r}
 fb_afinn <-    
- inner_join(fb_words, afinn, by = "word") 
+ inner_join(fb_words, 
+            afinn, 
+            by = "word") 
 
 tiktok_afinn <-    
- inner_join(tiktok_words, afinn, by = "word")
+ inner_join(tiktok_words, 
+            afinn, 
+            by = "word")
 
-fb_afinn %>% summarise(mean_fb_afinn = mean(value))
-tiktok_afinn %>% summarise(mean_tt_afinn = mean(value))
+fb_mean_afinn <- 
+  fb_afinn %>% 
+  summarise(mean_fb_afinn = mean(value))
 
+tiktok_mean_afinn <- 
+  tiktok_afinn %>% 
+  summarise(mean_tt_afinn = mean(value))
 
+cat(paste0("Average AFINN scores for all words by user\n",
+           "\nFacebook: ", round(fb_mean_afinn, 3), 
+           "\nTikTok: ", round(tiktok_mean_afinn, 3)))
 ```
 
-Mean of Facebook's afinn value is 0.79 while mean of Tiktok's afinn value is 1.704293. In general, tweets from Tiktok are more positive than those on Facebook. 
+Facebook's mean AFINN value is 0.79 while TikTok's mean AFINN value is 1.704. In general, words tweeted by Tiktok are more positive than those tweeted by Facebook. 
 
+# Training Predictive Models
 
-Here, we predict the user based on the tweet length and number of words for each sentiment. TikTok is encoded as 1, and Facebook is encoded as 0.
+Here, using the text of a tweet, we attempt to predict the user who tweeted it. 
+
+The features we extracted are tweet length, the presence of a picture/link, number of words for each sentiment, and mean AFINN score per tweet. 
+
+TikTok is encoded as 1, and Facebook is encoded as 0. 
+
+First, we produce a simple decision tree.
 
 ```{r}
+fb_piclinks <-
+  facebook %>%
+  filter(!str_detect(text, '^"')) %>%
+  mutate(picture_link = ifelse(str_detect(text, "t.co"),
+                         1, 0)) %>% 
+  select(1,5)
+
+tiktok_piclinks <- 
+  tiktok %>%
+  filter(!str_detect(text, '^"')) %>%
+  mutate(picture_link = ifelse(str_detect(text, "t.co"),
+                         1, 0)) %>% 
+  select(1,5)
+
+fb_tweet_afinn <- 
+  fb_afinn %>% 
+  group_by(status_id) %>% 
+  summarize(afinn = mean(value))
+
+tiktok_tweet_afinn <- 
+  tiktok_afinn %>% 
+  group_by(status_id) %>% 
+  summarize(afinn = mean(value))
+
 fb_sentiment_counts <- 
   fb_sentiment %>% 
   group_by(status_id) %>% 
@@ -323,12 +407,20 @@ tiktok_feature_selection <-
   tiktok_wordcounts %>% 
   mutate(user = 1) %>% 
   left_join(tiktok_sentiment_counts, 
+            by="status_id") %>% 
+  left_join(tiktok_tweet_afinn,
+            by="status_id") %>% 
+  left_join(tiktok_piclinks,
             by="status_id")
 
 facebook_feature_selection <-
   fb_wordcounts %>% 
   mutate(user = 0) %>% 
   left_join(fb_sentiment_counts, 
+            by="status_id") %>% 
+  left_join(fb_tweet_afinn,
+            by="status_id") %>% 
+  left_join(fb_piclinks,
             by="status_id")
 
 both_users <- 
@@ -342,14 +434,19 @@ index <-
                       p = 0.8, list = FALSE)
 
 for_decisiontree <-
-  both_users %>% select(-1,-2,-3,-4)
+  both_users %>% select(-1,-2,-3,-4) %>% 
+  drop_na()
 
 train <- for_decisiontree[index, ]
 test  <- for_decisiontree[-index, ]
 
-simple_model <- rpart(user ~ ., data = train, method = "class")
+set.seed(123)
+simple_model <- rpart(user ~ ., 
+                      data = train, method = "class")
 rpart.plot(simple_model, yesno = 2)
 ```
+
+We produce additional models using the bagging, random forests, and gradient boosting methods.
 
 ```{r, warning = FALSE}
 set.seed(123)
@@ -389,7 +486,126 @@ gbm_model <- gbm(
 )
 ```
 
+We also display four variable importance plots to see which variables each model identified as significant.
+
 ```{r}
+vip(simple_model, num_features = 30) + ggtitle('Simple Decision Tree - Variable Importance Plot')
+
+vip(bagging_model, num_features = 30) + ggtitle('Bagging - Variable Importance Plot')
+
+vip(rf_model, num_features = 30) + ggtitle('Random Forests - Variable Importance Plot')
+
+vip(gbm_model, num_features = 30) + ggtitle('Gradient Boosting - Variable Importance Plot')
+```
+
+It seems that the simple decision tree placed the most importance on the presence of a picture/link. The bagging model, on the other hand places no importance on this variable. All four methods identified tweet length as strongly predictive of the user. All four heavily weighted anticipation sentiments and AFINN scores.
+
+
+# Results and Discussion
+
+Now, I produce confusion matrices and show residual sum of squares for all tree-based methods---first evaluating their performance on the training set and then on the test set. Note again that a Tiktok tweet is encoded as 1, and a Facebook tweet is encoded as 0. The code is shown for the first matrix but not for subsequent ones for the sake of elegance.
+
+## Training Set Performance
+
+**Simple Decision Tree - Training Set:**
+
+```{r, echo = FALSE}
+simple_train_confusion <- 
+  confusionMatrix(data = factor(round(simple_pred_train)), 
+                  reference = factor(actual_train), mode = "prec_recall")
+
+simple_train_errors <- 
+  simple_train_confusion$table[2] +
+  simple_train_confusion$table[3]
+
+simple_train_accuracy <-
+  as.numeric(simple_train_confusion$overall[1])
+
+simple_train_confusion
+```
+
+**Bagging Method - Training Set:**
+
+```{r, echo = FALSE}
+bagging_train_confusion <- 
+  confusionMatrix(data = factor(round(bagging_pred_train)), 
+                  reference = factor(actual_train), mode = "prec_recall")
+
+bagging_train_errors <- 
+  bagging_train_confusion$table[2] +
+  bagging_train_confusion$table[3]
+
+bagging_train_accuracy <-
+  as.numeric(bagging_train_confusion$overall[1])
+
+bagging_train_confusion
+```
+
+
+**Random Forests Method - Training Set:**
+
+```{r, echo = FALSE}
+rf_train_confusion <- 
+  confusionMatrix(data = factor(round(rf_pred_train)), 
+                  reference = factor(actual_train), mode = "prec_recall")
+
+rf_train_errors <- 
+  rf_train_confusion$table[2] +
+  rf_train_confusion$table[3]
+
+rf_train_accuracy <-
+  as.numeric(rf_train_confusion$overall[1])
+
+rf_train_confusion
+```
+
+
+**Gradient Boosting Method - Training Set:**
+
+```{r, echo = FALSE}
+gb_train_confusion <- 
+  confusionMatrix(data = factor(round(gb_pred_train)), 
+                  reference = factor(actual_train), mode = "prec_recall")
+
+gb_train_errors <- 
+  gb_train_confusion$table[2] +
+  gb_train_confusion$table[3]
+
+gb_train_accuracy <-
+  as.numeric(gb_train_confusion$overall[1])
+
+gb_train_confusion
+```
+
+**Performance Summary and RSS**
+
+```{r, echo = FALSE}
+train_confusion_results <-
+  data.frame(type = c("Simple",
+                      "Bagging",
+                      "Random Forests",
+                      "Gradient Boosting"),
+           total_errors = c(simple_train_errors,
+                            bagging_train_errors,
+                            rf_train_errors,
+                            gb_train_errors),
+           accuracy = c(simple_train_accuracy,
+                        bagging_train_accuracy,
+                        rf_train_accuracy,
+                        gb_train_accuracy))
+
+kbl(train_confusion_results, booktabs = T)
+```
+
+The rankings for accuracy on the training set are as follows:
+1. Bagging method
+2. Random forests
+3. Gradient boosting method
+4. Simple decision tree
+
+We show the residual sum of squares for all four models on the training set below.
+
+```{r, warning = FALSE, message = FALSE}
 actual_train <- train$user
 
 simple_pred_train <- 
@@ -413,13 +629,113 @@ rss_gb_train <- sum((actual_train-gb_pred_train)^2)
 
 cat(paste0("Residual Sum of Squares on Training Set\n",
            "\nSimple model: ", rss_simple_train, 
-           "\nBagged model: ", rss_bagging_train, 
+           "\nBagging model: ", rss_bagging_train, 
            "\nRandom forests model: ", rss_rf_train, 
-           "\nGradient boost model: ", rss_gb_train))
+           "\nGradient boosting model: ", rss_gb_train))
 ```
 
+The bagging model performed the best on the training set, followed by the random forests method, the gradient boosting method, and the simple model in last place.
+
+Now, we show confusion matrices for the test set.
+
+## Test Set Performance
+
+**Simple Decision Tree - Test Set:**
 
 ```{r}
+simple_test_confusion <- 
+  confusionMatrix(data = factor(round(simple_pred_test)),
+                  reference = factor(actual_test), mode = "prec_recall")
+
+simple_test_errors <- 
+  simple_test_confusion$table[2] +
+  simple_test_confusion$table[3]
+
+simple_test_accuracy <-
+  as.numeric(simple_test_confusion$overall[1])
+
+simple_test_confusion
+```
+**Bagging Method - Test Set:**
+
+```{r, echo = FALSE}
+bagging_test_confusion <- 
+  confusionMatrix(data = factor(round(bagging_pred_test)), 
+                  reference = factor(actual_test), mode = "prec_recall")
+
+bagging_test_errors <- 
+  bagging_test_confusion$table[2] +
+  bagging_test_confusion$table[3]
+
+bagging_test_accuracy <-
+  as.numeric(bagging_test_confusion$overall[1])
+
+bagging_test_confusion
+```
+**Random Forests Method - Test Set:**
+
+```{r, echo = FALSE}
+rf_test_confusion <- 
+  confusionMatrix(data = factor(round(rf_pred_test)), 
+                  reference = factor(actual_test), mode = "prec_recall")
+
+rf_test_errors <- 
+  rf_test_confusion$table[2] +
+  rf_test_confusion$table[3]
+
+rf_test_accuracy <-
+  as.numeric(rf_test_confusion$overall[1])
+
+rf_test_confusion
+```
+
+**Gradient Boosting Method - Test Set:**
+
+```{r, echo = FALSE}
+gb_test_confusion <- 
+  confusionMatrix(data = factor(round(gb_pred_test)), 
+                  reference = factor(actual_test), mode = "prec_recall")
+
+gb_test_errors <- 
+  gb_test_confusion$table[2] +
+  gb_test_confusion$table[3]
+
+gb_test_accuracy <-
+  as.numeric(gb_test_confusion$overall[1])
+
+gb_test_confusion
+```
+
+**Performance Summary and RSS**
+
+```{r, echo = FALSE}
+test_confusion_results <-
+  data.frame(type = c("Simple",
+                      "Bagging",
+                      "Random Forests",
+                      "Gradient Boosting"),
+           total_errors = c(simple_test_errors,
+                            bagging_test_errors,
+                            rf_test_errors,
+                            gb_test_errors),
+           accuracy = c(simple_test_accuracy,
+                        bagging_test_accuracy,
+                        rf_test_accuracy,
+                        gb_test_accuracy))
+
+kbl(test_confusion_results, booktabs = T)
+```
+
+The rankings for accuracy on the test set are as follows:
+
+1. Random forests
+2. Gradient boosting method
+3. Bagging method
+4. Simple decision tree
+
+Now, we show the residual sum of squares for each model with respect to the test set.
+
+```{r, message = FALSE, warning = FALSE}
 actual_test <- test$user
 
 simple_pred_test <- 
@@ -448,75 +764,11 @@ cat(paste0("Residual Sum of Squares on Test Set\n",
            "\nGradient boost model: ", rss_gb_test))
 ```
 
-The random forests model performed the best on the test set even though it was only second best for the training set. However, that may be an indication that the bagging model was overfit, which caused it to perform much worse on the test set than the random forests model.
+The random forests model performed the best on the test set even though it was only second best for the training set. However, that may be an indication that the bagging model was overfit to the training data, which caused it to perform worse on the test set than the random forests model.
 
+In sum, it seems that the best model is the random forests model, with a test set accuracy score of 86.62%.
 
-## Evaluating Performance: Confusion Matrices
+# Conclusion
 
-Now, I produce confusion matrices for all tree-based methods---first evaluating their performance on the test set. Note again that a Tiktok tweet is encoded as 1, and a Facebook tweet is encoded as 0. The code is shown for the first matrix but not for subsequent ones for the sake of elegance.
+Looking at the analyses, it seems that the Facebook and TikTok accounts have systematically different Twitter presences. Facebook seems to respond more frequently to user fears, which are associated with words such as “secure” and “trust.” Whereas, TikTok focuses on generating excitement and offer prize giveaways, which is associated with “anticipation” words such as “winning” and “tomorrow.” Differences in tweet length also possibly reflect on the preferences of the target audience; TikTok users are younger and less likely to consume written information (it is a video platform, after all), and the opposite is true for Facebook. In sum, our predictive endeavor was successful, and we unveiled a number of useful insights from it.
 
-**Simple Model - Test Set:**
-
-```{r}
-simple_test_confusion <- 
-  confusionMatrix(data = factor(round(simple_pred_test)),
-                  reference = factor(actual_test), mode = "prec_recall")
-
-simple_test_errors <- 
-  simple_test_confusion$table[2] +
-  simple_test_confusion$table[3]
-
-simple_test_accuracy <-
-  as.numeric(simple_test_confusion$overall[1])
-
-simple_test_confusion
-```
-**Bagging Model - Test Set:**
-
-```{r, echo = FALSE}
-bagging_test_confusion <- 
-  confusionMatrix(data = factor(round(bagging_pred_test)), 
-                  reference = factor(actual_test), mode = "prec_recall")
-
-bagging_test_errors <- 
-  bagging_test_confusion$table[2] +
-  bagging_test_confusion$table[3]
-
-bagging_test_accuracy <-
-  as.numeric(bagging_test_confusion$overall[1])
-
-bagging_test_confusion
-```
-**Random Forests - Test Set:**
-
-```{r, echo = FALSE}
-rf_test_confusion <- 
-  confusionMatrix(data = factor(round(rf_pred_test)), 
-                  reference = factor(actual_test), mode = "prec_recall")
-
-rf_test_errors <- 
-  rf_test_confusion$table[2] +
-  rf_test_confusion$table[3]
-
-rf_test_accuracy <-
-  as.numeric(rf_test_confusion$overall[1])
-
-rf_test_confusion
-```
-
-**Gradient Boosting Model - Test Set:**
-
-```{r, echo = FALSE}
-gb_test_confusion <- 
-  confusionMatrix(data = factor(round(gb_pred_test)), 
-                  reference = factor(actual_test), mode = "prec_recall")
-
-gb_test_errors <- 
-  gb_test_confusion$table[2] +
-  gb_test_confusion$table[3]
-
-gb_test_accuracy <-
-  as.numeric(gb_test_confusion$overall[1])
-
-gb_test_confusion
-```
