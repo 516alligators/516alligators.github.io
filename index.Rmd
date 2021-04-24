@@ -18,9 +18,9 @@ Our research question focuses on whether there are differences in sentiments of 
 
 Our method of sentiments analysis is text mining with R. 
 
-After getting tweets from twitter, we use basic tools of data exploration to transform, visualize, and examine different features of the datasets, such as source, time, length, and content (e.g, link and picture) of the tweets. We produce bar charts to visualize the most popular words used by each twitter account, as well as the most popular sentiments associated with tweets that each account produces. A wordcloud also helps paint a clearer picture of each company's most commonly used words.
+First, after getting tweets from twitter, we use basic tools of data exploration to transform, visualize, and examine different features of the datasets, such as source, time, length, and content (e.g, link and picture) of the tweets. We produce bar charts to visualize the most popular words used by each twitter account, as well as the most popular sentiments associated with tweets that each account produces. A wordcloud also helps paint a clearer picture of each company's most commonly used words.
 
-Next, we transform the datasets into tidy text format for sentiment analysis. The two main lexicons that we use are nrc and affin.  
+Second, we transform the datasets into tidy text format for sentiment analysis. The two main lexicons that we use are nrc and affin.  
 
 Finally, we run 4 different models to predict if a tweet was posted by either Facebook or Tiktok. The inputs of these models are the length of the tweet, as well as sentiment (which includes anger, anticipation, disgust, negative, postive, trust, joy, surprise, fear and sadness).  
 
@@ -111,7 +111,8 @@ tiktok %>%
 
 
 ```
-These above figures indicate Tiktok/Facebook breakdown by hour. 
+These above figures indicate Tiktok/Facebook breakdown by hour. Across sources, the "busiest" time on both platforms are from 12:00 to 20:00. While Khoros Publishing has the most tweets about Facebook with its peak around 16:00, Twitter Web App and Fan Experiences (peaks around 16:00) are the main source of tweets about Tiktok. 
+
 
 ```{r}
 fb_wordcounts <- 
@@ -135,6 +136,9 @@ hist(fb_wordcounts$tweetLength)
 
 ```
 
+In terms of tweet length, a typical tweet related to Tiktok has from 50 to 100 words. There are less tweets that has more than 100 words. A typical tweet related to Facebook has around 150 words. 
+
+
 ```{r}
 fb_picture_counts <- 
   facebook %>%
@@ -157,6 +161,10 @@ barplot(tiktok_picture_counts$n,
         main = "Tiktok # of Tweets with and without pics/link")
 
 ```
+
+Facebook tweets that contains pictures or links are more common than ones that have no pictures or links. There are no remarakble differences between tweets that contain picture/link and ones that don't contains picture/link from Tiktok. 
+
+
 
 ```{r}
 reg <- "([^A-Za-z\\d#@']|'(?![A-Za-z\\d#@]))"
@@ -276,7 +284,8 @@ ggplot(tiktok_sentiment_analysis2, aes(x=word, y=n, fill = n)) +
 
 
 ```
-We also want to visualize common words on Facebook and Tiktok by wordccloud. The visual depiction indicates to us that "learn", "center" and "report" are common words, with more secondary common words such as "secure" page", and "visit" for Facebook account engagement. This could be that Facebook users tweet about account issues. Whereas, TikTok has "top", "tomorrow", and "prizes" as common words, and more secondary common words such as "winner, "nominating", and "grand", indicating that the social media platform likes to promote competitions or giveaways, which makes sense given their younger demographics might enjoy these types of rewards and games.
+
+We also want to visualize common words on Facebook and Tiktok by Wordcloud. The visual depiction indicates to us that "learn", "center" and "report" are common words, with more secondary common words such as "secure" page", and "visit" for Facebook account engagement. This could be that Facebook users tweet about account issues. Whereas, TikTok has "top", "tomorrow", and "prizes" as common words, and more secondary common words such as "winner, "nominating", and "grand", indicating that the social media platform likes to promote competitions or giveaways, which makes sense given their younger demographics might enjoy these types of rewards and games.
 
 
 ```{r, warning = FALSE, message = FALSE}
@@ -369,6 +378,9 @@ test  <- for_decisiontree[-index, ]
 simple_model <- rpart(user ~ ., data = train, method = "class")
 rpart.plot(simple_model, yesno = 2)
 ```
+Interpretation of decision tree: If a tweet has less than 94 words, it is projected to be about/from Tiktok, with 82% probability, and 29% of the data correspond with this case. In another case, if a tweet has more than/or equal 94 words, 37% chance that it is related to Facebook, with 71% data correspondence. However, within this case, if its anticipation "score" is more than 2, 82% this tweet is related to Tiktok. 
+
+
 
 ```{r, warning = FALSE}
 set.seed(123)
@@ -380,8 +392,9 @@ bagging_model <- train(
   keepX = T,
   nbagg = 100,
   importance = "impurity",
-  control = rpart.control(minsplit = 2, cp = 0)
-)
+  control = rpart.control(minsplit = 2, cp = 0))
+bagging_model
+
 
 n_features <- length(setdiff(names(train), "user"))
 
@@ -391,9 +404,8 @@ rf_model <- ranger(
   mtry = floor(n_features * 0.5),
   respect.unordered.factors = "order",
   importance = "permutation",
-  seed = 123
-)
-
+  seed = 123)
+rf_model
 
 set.seed(123)  # for reproducibility
 gbm_model <- gbm(
@@ -404,8 +416,9 @@ gbm_model <- gbm(
   shrinkage = 0.05,
   interaction.depth = 5,
   n.minobsinnode = 4,
-  cv.folds = 10
-)
+  cv.folds = 10)
+
+gbm_model
 ```
 
 ```{r}
@@ -543,6 +556,9 @@ gb_test_confusion
 
 ## III. Results
 
+Our sentiment analyses indicate that there are differences in sentiments of tweet communications between Tiktok and Facebook account. In general, while discussions surrounding Facebook uses more trust words, topics about TikTok uses more words that reflect anticipation. Tweets from Tiktok are more positive than those on Facebook. 
+
+
 When testing the models on our test data sets, for the simple model we observed 81.38% accuracy, for the bagging model we observed 80.83% accuracy, for the random forest we observed 83.41% accuracy, and for the gradient boosting model we observed 84.43% accuracy. Another good metric to compare is balanced accuracy, which is the average of specificity and sensitivity. For the simple model, balanced accuracy is 81.3%. For the bagging model, balanced accuracy is 80.83%. For the random forest, balanced accuracy is 83.37%. For the gradient boosting model, balanced accuracy is 84.36%.  
 
 Therefore, it seems that in terms of prediction accuracy, the rank of our 4 models is as follows:  
@@ -564,6 +580,7 @@ In all, these results show us that the best model is a toss up between the Rando
 
 
 ## IV. Conclusion
+
 Looking at the analyses, it seems that the Facebook and TikTok account and users tweet about these two social media platforms for different reasons. People tweeting about Facebook are likely to be reporting their account issues, which are associated with words such as "secure" and "trust." Whereas, people tweeting about TikTok seem to be participating in prize giveaways, which is associated with "anticipation" words such as "winning" and "tomorrow." Overall, these analyses make sense given the different demographics of the two social media platforms. 
 
 ## V. Contributions
