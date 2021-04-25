@@ -650,7 +650,7 @@ train_confusion_results <-
                         rf_train_accuracy,
                         gb_train_accuracy))
 
-kbl(train_confusion_results, booktabs = T)
+kbl(train_confusion_results, format = 'html', booktabs = T)
 ```
 
 The rankings for accuracy on the training set are as follows:
@@ -786,7 +786,7 @@ test_confusion_results <-
                         rf_test_accuracy,
                         gb_test_accuracy))
 
-kbl(test_confusion_results, booktabs = T)
+kbl(test_confusion_results, format = 'html', booktabs = T)
 ```
 
 The rankings for accuracy on the test set are as follows:
