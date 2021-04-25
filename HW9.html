@@ -350,12 +350,20 @@ $(document).ready(function () {
 </div>
 
 
-<div id="introduction" class="section level1">
-<h1>Introduction</h1>
+<div id="i.-introduction" class="section level1">
+<h1>I. Introduction</h1>
 <p>We will be examining the difference in tweet communications between TikTok and Facebook. These are two popular social media platforms but with very different target audiences. Thus, the two brands may differ in their communication styles and language. We set out to identify the particular ways in which they differ and to build a model that can attribute each tweet to the correct user.</p>
 </div>
-<div id="preliminary-analysis" class="section level1">
-<h1>Preliminary Analysis</h1>
+<div id="ii.-methodology" class="section level1">
+<h1>II. Methodology</h1>
+<p>First, after getting tweets using the Twitter API and R package rtweet, we use basic tools of data exploration to transform, visualize, and examine different features of the datasets, such as source, time, length, and particular contents (e.g., picture/links) of the tweets. We produce bar charts to visualize the most popular words used by each twitter account, as well as the most popular sentiments associated with tweets that each account produces. A word cloud also helps paint a clearer picture of each company’s most commonly used words.</p>
+<p>Second, we transform the datasets into tidytext format for sentiment analysis. The two lexicons that we use are NRC and AFINN.</p>
+<p>Finally, we train four different models to predict if a tweet was posted by either Facebook or TikTok. The inputs of these models are the length of the tweet, presence of pictures, sentiment (which includes anger, anticipation, disgust, negative, postive, trust, joy, surprise, fear and sadness), and positive/negative valence, estimated by averaging AFINN scores over each tweet.</p>
+<p>The first model is a Simple Decision Tree, the second model is a Bagging Model, the third model is a Random Forest and the fourth model is a Gradient Boosting Model.</p>
+<p>We report the residual sum of squares on the training and test sets to determine which models have the smallest differences between the predicted tweeter and actual tweeter. We also show confusion matrices to determine the predictive efficacy of the four models.</p>
+</div>
+<div id="iii.-preliminary-analysis" class="section level1">
+<h1>III. Preliminary Analysis</h1>
 <p>First, we import all non-base packages to be used in this analysis.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rtweet)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -453,31 +461,42 @@ $(document).ready(function () {
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(<span class="at">picture =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;Picture/link&quot;</span>, <span class="st">&quot;No picture/link&quot;</span>))</span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>tiktok_picture_counts <span class="ot">&lt;-</span> </span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  tiktok <span class="sc">%&gt;%</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(<span class="at">picture =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;Picture/link&quot;</span>, <span class="st">&quot;No picture/link&quot;</span>))</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>fb_pct_pics <span class="ot">&lt;-</span> </span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  fb_picture_counts <span class="sc">%&gt;%</span> <span class="fu">filter</span>(picture <span class="sc">==</span> <span class="st">&quot;Picture/link&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="fu">as.numeric</span>() <span class="sc">/</span> <span class="fu">sum</span>(fb_picture_counts<span class="sc">$</span>n) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>fb_picture_counts <span class="ot">&lt;-</span> </span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  fb_picture_counts <span class="sc">%&gt;%</span> </span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(fb_picture_counts<span class="sc">$</span>n) <span class="sc">*</span><span class="dv">100</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>tiktok_picture_counts <span class="ot">&lt;-</span> </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  tiktok <span class="sc">%&gt;%</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(<span class="at">picture =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;Picture/link&quot;</span>, <span class="st">&quot;No picture/link&quot;</span>))</span>
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>tiktok_pct_pics <span class="ot">&lt;-</span></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  tiktok_picture_counts <span class="sc">%&gt;%</span> <span class="fu">filter</span>(picture <span class="sc">==</span> <span class="st">&quot;Picture/link&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="fu">as.numeric</span>() <span class="sc">/</span> <span class="fu">sum</span>(tiktok_picture_counts<span class="sc">$</span>n) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>tiktok_picture_counts <span class="ot">&lt;-</span> </span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  tiktok_picture_counts <span class="sc">%&gt;%</span> </span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(tiktok_picture_counts<span class="sc">$</span>n) <span class="sc">*</span><span class="dv">100</span>)</span>
 <span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">&quot;Percent of Tweets with pictures/link</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Facebook: &quot;</span>, <span class="fu">round</span>(fb_pct_pics, <span class="dv">2</span>), </span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">TikTok: &quot;</span>, <span class="fu">round</span>(tiktok_pct_pics, <span class="dv">2</span>)))</span></code></pre></div>
-<pre><code>## Percent of Tweets with pictures/link
-## 
-## Facebook: 85.98
-## TikTok: 52.33</code></pre>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>fb_picture_counts <span class="sc">%&gt;%</span> </span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> n, <span class="at">fill =</span> picture)) <span class="sc">+</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">width =</span> <span class="dv">1</span>, <span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>) <span class="sc">+</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_polar</span>(<span class="st">&quot;y&quot;</span>, <span class="at">start=</span><span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(prop,<span class="dv">2</span>), <span class="st">&quot;%&quot;</span>)), </span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_stack</span>(<span class="at">vjust =</span> <span class="fl">0.5</span>), <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span> </span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Percent of Facebook Tweets with Picture/link and Without&quot;</span>)</span></code></pre></div>
+<p><img src="HW9_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>tiktok_picture_counts <span class="sc">%&gt;%</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> n, <span class="at">fill =</span> picture)) <span class="sc">+</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">width =</span> <span class="dv">1</span>, <span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>) <span class="sc">+</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_polar</span>(<span class="st">&quot;y&quot;</span>, <span class="at">start=</span><span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="fu">round</span>(prop,<span class="dv">2</span>), <span class="st">&quot;%&quot;</span>)), </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_stack</span>(<span class="at">vjust =</span> <span class="fl">0.5</span>), <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span> </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Percent of TikTok Tweets with Picture/link and Without&quot;</span>)</span></code></pre></div>
+<p><img src="HW9_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
 <p>~86% of Facebook’s tweets contain pictures/links, while only ~52% of TikTok’s tweets contain pictures/links. This could be another useful predictor to include in our model.</p>
 </div>
-<div id="sentiment-analysis" class="section level1">
-<h1>Sentiment Analysis</h1>
+<div id="iv.-sentiment-analysis" class="section level1">
+<h1>IV. Sentiment Analysis</h1>
 <p>Now, we split the tweets into tokens so that we can perform sentiment analysis on them.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>reg <span class="ot">&lt;-</span> <span class="st">&quot;([^A-Za-z</span><span class="sc">\\</span><span class="st">d#@&#39;]|&#39;(?![A-Za-z</span><span class="sc">\\</span><span class="st">d#@]))&quot;</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -665,8 +684,8 @@ $(document).ready(function () {
 ## TikTok: 1.704</code></pre>
 <p>Facebook’s mean AFINN value is 0.79 while TikTok’s mean AFINN value is 1.704. In general, words tweeted by Tiktok are more positive than those tweeted by Facebook.</p>
 </div>
-<div id="training-predictive-models" class="section level1">
-<h1>Training Predictive Models</h1>
+<div id="v.-training-predictive-models" class="section level1">
+<h1>V. Training Predictive Models</h1>
 <p>Here, using the text of a tweet, we attempt to predict the user who tweeted it.</p>
 <p>The features we extracted are tweet length, the presence of a picture/link, number of words for each sentiment, and mean AFINN score per tweet.</p>
 <p>TikTok is encoded as 1, and Facebook is encoded as 0.</p>
@@ -810,8 +829,8 @@ $(document).ready(function () {
 <p><img src="HW9_files/figure-html/unnamed-chunk-15-4.png" width="672" /></p>
 <p>It seems that the simple decision tree placed the most importance on the presence of a picture/link. The bagging model, on the other hand places no importance on this variable. All four methods identified tweet length as strongly predictive of the user. All four heavily weighted anticipation sentiments and AFINN scores.</p>
 </div>
-<div id="results-and-discussion" class="section level1">
-<h1>Results and Discussion</h1>
+<div id="vi.-results-and-discussion" class="section level1">
+<h1>VI. Results and Discussion</h1>
 <p>Now, I produce confusion matrices and show residual sum of squares for all tree-based methods—first evaluating their performance on the training set and then on the test set. Note again that a Tiktok tweet is encoded as 1, and a Facebook tweet is encoded as 0. The code is shown for the first matrix but not for subsequent ones for the sake of elegance.</p>
 <div id="training-set-performance" class="section level2">
 <h2>Training Set Performance</h2>
@@ -1231,9 +1250,13 @@ Gradient Boosting
 <p>In sum, it seems that the best model is the random forests model, with a test set accuracy score of 86.62%.</p>
 </div>
 </div>
-<div id="conclusion" class="section level1">
-<h1>Conclusion</h1>
+<div id="vii.-conclusion" class="section level1">
+<h1>VII. Conclusion</h1>
 <p>Looking at the analyses, it seems that the Facebook and TikTok accounts have systematically different Twitter presences. Facebook seems to respond more frequently to user fears, which are associated with words such as “secure” and “trust.” Whereas, TikTok focuses on generating excitement and offer prize giveaways, which is associated with “anticipation” words such as “winning” and “tomorrow.” Differences in tweet length also possibly reflect on the preferences of the target audience; TikTok users are younger and less likely to consume written information (it is a video platform, after all), and the opposite is true for Facebook. In sum, our predictive endeavor was successful, and we unveiled a number of useful insights from it.</p>
+</div>
+<div id="viii.-contributions" class="section level1">
+<h1>VIII. Contributions</h1>
+<p>As the authorship indicates, four teammates contributed to this analysis: Elaina Lin, Kim Nguyen, Meghan Aines, and Ryan Karbowicz.</p>
 </div>
 
 
