@@ -358,7 +358,14 @@ $(document).ready(function () {
 <h1>II. Methodology</h1>
 <p>First, after getting tweets using the Twitter API and R package rtweet, we use basic tools of data exploration to transform, visualize, and examine different features of the datasets, such as source, time, length, and particular contents (e.g., picture/links) of the tweets. We produce bar charts to visualize the most popular words used by each twitter account, as well as the most popular sentiments associated with tweets that each account produces. A word cloud also helps paint a clearer picture of each company’s most commonly used words.</p>
 <p>Second, we transform the datasets into tidytext format for sentiment analysis. The two lexicons that we use are NRC and AFINN.</p>
-<p>Finally, we train four different models to predict if a tweet was posted by either Facebook or TikTok. The inputs of these models are the length of the tweet, presence of pictures, sentiment (which includes anger, anticipation, disgust, negative, postive, trust, joy, surprise, fear and sadness), and positive/negative valence, estimated by averaging AFINN scores over each tweet.</p>
+<p>Finally, we train four different models to predict if a tweet was posted by either Facebook or TikTok. The inputs of these models are as follows:</p>
+<ul>
+<li><p>length of the tweet</p></li>
+<li><p>the number of times each of the twenty most common words from each account appear</p></li>
+<li><p>presence of pictures</p></li>
+<li><p>sentiment words, which reflect anger, anticipation, disgust, negative, postive, trust, joy, surprise, fear and sadness</p></li>
+<li><p>positive/negative valence, estimated by averaging AFINN scores over each tweet.</p></li>
+</ul>
 <p>The first model is a Simple Decision Tree, the second model is a Bagging Model, the third model is a Random Forest and the fourth model is a Gradient Boosting Model.</p>
 <p>We report the residual sum of squares on the training and test sets to determine which models have the smallest differences between the predicted tweeter and actual tweeter. We also show confusion matrices to determine the predictive efficacy of the four models.</p>
 </div>
@@ -536,26 +543,32 @@ $(document).ready(function () {
 ## 4 x1382020080343470082 Twitter Web App 2021-04-13 17:17:18 #monthofgood
 ## 5 x1382020080343470082 Twitter Web App 2021-04-13 17:17:18 check       
 ## 6 x1382020080343470082 Twitter Web App 2021-04-13 17:17:18 kindness</code></pre>
-<p>We produce two horizontal bar graphs that show the most common words along with a wordcloud for each user.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fb_words <span class="sc">%&gt;%</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, n)) <span class="sc">%&gt;%</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> word, <span class="at">y =</span> n)) <span class="sc">+</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>) <span class="sc">+</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Occurrences&quot;</span>) <span class="sc">+</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span> </span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Facebook Word Frequency&quot;</span>)</span></code></pre></div>
+<p>We produce two horizontal bar graphs that show the most common words along with a word cloud for each user.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fb_most_common <span class="ot">&lt;-</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  fb_words <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, n))</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>fb_most_common <span class="sc">%&gt;%</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> word, <span class="at">y =</span> n)) <span class="sc">+</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>) <span class="sc">+</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Occurrences&quot;</span>) <span class="sc">+</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span> </span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Facebook Word Frequency&quot;</span>)</span></code></pre></div>
 <p><img src="HW9_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>tiktok_words <span class="sc">%&gt;%</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, n)) <span class="sc">%&gt;%</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> word, <span class="at">y =</span> n)) <span class="sc">+</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>) <span class="sc">+</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Occurrences&quot;</span>) <span class="sc">+</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;TikTok Word Frequency&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>tiktok_most_common <span class="ot">&lt;-</span> </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  tiktok_words <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, n))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>tiktok_most_common <span class="sc">%&gt;%</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> word, <span class="at">y =</span> n)) <span class="sc">+</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">&quot;identity&quot;</span>) <span class="sc">+</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Occurrences&quot;</span>) <span class="sc">+</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;TikTok Word Frequency&quot;</span>)</span></code></pre></div>
 <p><img src="HW9_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>facebook_cloud <span class="ot">&lt;-</span> </span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  fb_words  <span class="sc">%&gt;%</span> </span>
@@ -581,7 +594,12 @@ $(document).ready(function () {
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>                     <span class="st">&quot;green&quot;</span>, <span class="st">&quot;orange&quot;</span>, </span>
 <span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>                     <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;brown&quot;</span>))</span></code></pre></div>
 <p><img src="HW9_files/figure-html/unnamed-chunk-8-4.png" width="672" /></p>
-<p>We join the NRC Word-Emotion Association Lexicon to our data, which will allow us to identify words associated with eight basic emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive).</p>
+<p>The most common word that Facebook uses is “kn,” and it’s unclear what this means. We did a quick search and found that Facebook signs off a lot of its replies with “-KN.” See here: <a href="https://twitter.com/Facebook/status/1185298970832244736" class="uri">https://twitter.com/Facebook/status/1185298970832244736</a></p>
+<p>Facebook frequently uses neutral and security-/support-related words: “account,” “report,” “secure,” “experiencing,” etc.</p>
+<p>TikTok uses a lot more anticipatory words like “tomorrow,” “prizes,” “nomination,” “winner.” TikTok’s Twitter account actually has a lot of sweepstakes.</p>
+<p>Both accounts, of course, reference their own company names frequently.</p>
+<p>We will use the number of times these forty words appear as predictors in our model.</p>
+<p>We now join the NRC Word-Emotion Association Lexicon to our data, which will allow us to identify words associated with eight basic emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive).</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fb_sentiment <span class="ot">&lt;-</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(fb_words, nrc, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -687,95 +705,134 @@ $(document).ready(function () {
 <div id="v.-training-predictive-models" class="section level1">
 <h1>V. Training Predictive Models</h1>
 <p>Here, using the text of a tweet, we attempt to predict the user who tweeted it.</p>
-<p>The features we extracted are tweet length, the presence of a picture/link, number of words for each sentiment, and mean AFINN score per tweet.</p>
+<p>The features we extracted are tweet length, the number of times each of the twenty most common words from each account appear, the presence of a picture/link, number of words for each sentiment, and mean AFINN score per tweet.</p>
 <p>TikTok is encoded as 1, and Facebook is encoded as 0.</p>
-<p>First, we produce a simple decision tree.</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>fb_piclinks <span class="ot">&lt;-</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  facebook <span class="sc">%&gt;%</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">picture_link =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>                         <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">5</span>)</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>tiktok_piclinks <span class="ot">&lt;-</span> </span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  tiktok <span class="sc">%&gt;%</span></span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">picture_link =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>                         <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">5</span>)</span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>fb_tweet_afinn <span class="ot">&lt;-</span> </span>
-<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  fb_afinn <span class="sc">%&gt;%</span> </span>
-<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">afinn =</span> <span class="fu">mean</span>(value))</span>
-<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>tiktok_tweet_afinn <span class="ot">&lt;-</span> </span>
-<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>  tiktok_afinn <span class="sc">%&gt;%</span> </span>
-<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">afinn =</span> <span class="fu">mean</span>(value))</span>
-<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>fb_sentiment_counts <span class="ot">&lt;-</span> </span>
-<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>  fb_sentiment <span class="sc">%&gt;%</span> </span>
-<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(sentiment) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> status_id, </span>
-<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> sentiment, </span>
-<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> n,</span>
-<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_fill =</span> <span class="dv">0</span>)</span>
-<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>tiktok_sentiment_counts <span class="ot">&lt;-</span> </span>
-<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>  tiktok_sentiment <span class="sc">%&gt;%</span> </span>
-<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(sentiment) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> status_id, </span>
-<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> sentiment, </span>
-<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> n,</span>
-<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_fill =</span> <span class="dv">0</span>)</span>
-<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>tiktok_feature_selection <span class="ot">&lt;-</span> </span>
-<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a>  tiktok_wordcounts <span class="sc">%&gt;%</span> </span>
-<span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">user =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tiktok_sentiment_counts, </span>
-<span id="cb26-49"><a href="#cb26-49" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-50"><a href="#cb26-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tiktok_tweet_afinn,</span>
-<span id="cb26-51"><a href="#cb26-51" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-52"><a href="#cb26-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tiktok_piclinks,</span>
-<span id="cb26-53"><a href="#cb26-53" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>)</span>
-<span id="cb26-54"><a href="#cb26-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-55"><a href="#cb26-55" aria-hidden="true" tabindex="-1"></a>facebook_feature_selection <span class="ot">&lt;-</span></span>
-<span id="cb26-56"><a href="#cb26-56" aria-hidden="true" tabindex="-1"></a>  fb_wordcounts <span class="sc">%&gt;%</span> </span>
-<span id="cb26-57"><a href="#cb26-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">user =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-58"><a href="#cb26-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fb_sentiment_counts, </span>
-<span id="cb26-59"><a href="#cb26-59" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-60"><a href="#cb26-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fb_tweet_afinn,</span>
-<span id="cb26-61"><a href="#cb26-61" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-62"><a href="#cb26-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fb_piclinks,</span>
-<span id="cb26-63"><a href="#cb26-63" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>)</span>
-<span id="cb26-64"><a href="#cb26-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-65"><a href="#cb26-65" aria-hidden="true" tabindex="-1"></a>both_users <span class="ot">&lt;-</span> </span>
-<span id="cb26-66"><a href="#cb26-66" aria-hidden="true" tabindex="-1"></a>  tiktok_feature_selection <span class="sc">%&gt;%</span> </span>
-<span id="cb26-67"><a href="#cb26-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbind</span>(facebook_feature_selection) <span class="sc">%&gt;%</span></span>
-<span id="cb26-68"><a href="#cb26-68" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_if</span>(is.numeric,coalesce,<span class="dv">0</span>)</span>
-<span id="cb26-69"><a href="#cb26-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-70"><a href="#cb26-70" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb26-71"><a href="#cb26-71" aria-hidden="true" tabindex="-1"></a>index <span class="ot">&lt;-</span> </span>
-<span id="cb26-72"><a href="#cb26-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">createDataPartition</span>(both_users<span class="sc">$</span>user,</span>
-<span id="cb26-73"><a href="#cb26-73" aria-hidden="true" tabindex="-1"></a>                      <span class="at">p =</span> <span class="fl">0.8</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb26-74"><a href="#cb26-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-75"><a href="#cb26-75" aria-hidden="true" tabindex="-1"></a>for_decisiontree <span class="ot">&lt;-</span></span>
-<span id="cb26-76"><a href="#cb26-76" aria-hidden="true" tabindex="-1"></a>  both_users <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">2</span>,<span class="sc">-</span><span class="dv">3</span>,<span class="sc">-</span><span class="dv">4</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-77"><a href="#cb26-77" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
-<span id="cb26-78"><a href="#cb26-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-79"><a href="#cb26-79" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> for_decisiontree[index, ]</span>
-<span id="cb26-80"><a href="#cb26-80" aria-hidden="true" tabindex="-1"></a>test  <span class="ot">&lt;-</span> for_decisiontree[<span class="sc">-</span>index, ]</span>
-<span id="cb26-81"><a href="#cb26-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-82"><a href="#cb26-82" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb26-83"><a href="#cb26-83" aria-hidden="true" tabindex="-1"></a>simple_model <span class="ot">&lt;-</span> <span class="fu">rpart</span>(user <span class="sc">~</span> ., </span>
-<span id="cb26-84"><a href="#cb26-84" aria-hidden="true" tabindex="-1"></a>                      <span class="at">data =</span> train, <span class="at">method =</span> <span class="st">&quot;class&quot;</span>)</span>
-<span id="cb26-85"><a href="#cb26-85" aria-hidden="true" tabindex="-1"></a><span class="fu">rpart.plot</span>(simple_model, <span class="at">yesno =</span> <span class="dv">2</span>)</span></code></pre></div>
+<p>First, we prepare the data for training and produce a simple decision tree.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>fbcommon <span class="ot">&lt;-</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(fb_most_common<span class="sc">$</span>word, as.character) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlist</span>()</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>tiktokcommon <span class="ot">&lt;-</span> </span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(tiktok_most_common<span class="sc">$</span>word, as.character) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlist</span>()</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>commonwords <span class="ot">&lt;-</span> <span class="fu">c</span>(tiktokcommon, fbcommon)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>fb_word_predict <span class="ot">&lt;-</span> </span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  fb_words <span class="sc">%&gt;%</span> </span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(word <span class="sc">%in%</span> commonwords) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> status_id, </span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> word, </span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> n,</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_fill =</span> <span class="dv">0</span>)</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>tiktok_word_predict <span class="ot">&lt;-</span> </span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>  tiktok_words <span class="sc">%&gt;%</span> </span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(word <span class="sc">%in%</span> commonwords) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> status_id, </span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> word, </span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> n,</span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_fill =</span> <span class="dv">0</span>)</span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>fb_piclinks <span class="ot">&lt;-</span></span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>  facebook <span class="sc">%&gt;%</span></span>
+<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">picture_link =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
+<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>                         <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">5</span>)</span>
+<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>tiktok_piclinks <span class="ot">&lt;-</span> </span>
+<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>  tiktok <span class="sc">%&gt;%</span></span>
+<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">picture_link =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
+<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>                         <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">5</span>)</span>
+<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a>fb_tweet_afinn <span class="ot">&lt;-</span> </span>
+<span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a>  fb_afinn <span class="sc">%&gt;%</span> </span>
+<span id="cb26-49"><a href="#cb26-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-50"><a href="#cb26-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">afinn =</span> <span class="fu">mean</span>(value))</span>
+<span id="cb26-51"><a href="#cb26-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-52"><a href="#cb26-52" aria-hidden="true" tabindex="-1"></a>tiktok_tweet_afinn <span class="ot">&lt;-</span> </span>
+<span id="cb26-53"><a href="#cb26-53" aria-hidden="true" tabindex="-1"></a>  tiktok_afinn <span class="sc">%&gt;%</span> </span>
+<span id="cb26-54"><a href="#cb26-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-55"><a href="#cb26-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">afinn =</span> <span class="fu">mean</span>(value))</span>
+<span id="cb26-56"><a href="#cb26-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-57"><a href="#cb26-57" aria-hidden="true" tabindex="-1"></a>fb_sentiment_counts <span class="ot">&lt;-</span> </span>
+<span id="cb26-58"><a href="#cb26-58" aria-hidden="true" tabindex="-1"></a>  fb_sentiment <span class="sc">%&gt;%</span> </span>
+<span id="cb26-59"><a href="#cb26-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-60"><a href="#cb26-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(sentiment) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-61"><a href="#cb26-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb26-62"><a href="#cb26-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> status_id, </span>
+<span id="cb26-63"><a href="#cb26-63" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> sentiment, </span>
+<span id="cb26-64"><a href="#cb26-64" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> n,</span>
+<span id="cb26-65"><a href="#cb26-65" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_fill =</span> <span class="dv">0</span>)</span>
+<span id="cb26-66"><a href="#cb26-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-67"><a href="#cb26-67" aria-hidden="true" tabindex="-1"></a>tiktok_sentiment_counts <span class="ot">&lt;-</span> </span>
+<span id="cb26-68"><a href="#cb26-68" aria-hidden="true" tabindex="-1"></a>  tiktok_sentiment <span class="sc">%&gt;%</span> </span>
+<span id="cb26-69"><a href="#cb26-69" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(status_id) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-70"><a href="#cb26-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(sentiment) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-71"><a href="#cb26-71" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb26-72"><a href="#cb26-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> status_id, </span>
+<span id="cb26-73"><a href="#cb26-73" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> sentiment, </span>
+<span id="cb26-74"><a href="#cb26-74" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> n,</span>
+<span id="cb26-75"><a href="#cb26-75" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_fill =</span> <span class="dv">0</span>)</span>
+<span id="cb26-76"><a href="#cb26-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-77"><a href="#cb26-77" aria-hidden="true" tabindex="-1"></a>tiktok_feature_selection <span class="ot">&lt;-</span> </span>
+<span id="cb26-78"><a href="#cb26-78" aria-hidden="true" tabindex="-1"></a>  tiktok_wordcounts <span class="sc">%&gt;%</span> </span>
+<span id="cb26-79"><a href="#cb26-79" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">user =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-80"><a href="#cb26-80" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tiktok_sentiment_counts, </span>
+<span id="cb26-81"><a href="#cb26-81" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-82"><a href="#cb26-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tiktok_tweet_afinn,</span>
+<span id="cb26-83"><a href="#cb26-83" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-84"><a href="#cb26-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tiktok_piclinks,</span>
+<span id="cb26-85"><a href="#cb26-85" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-86"><a href="#cb26-86" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(tiktok_word_predict,</span>
+<span id="cb26-87"><a href="#cb26-87" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">&quot;status_id&quot;</span>)</span>
+<span id="cb26-88"><a href="#cb26-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-89"><a href="#cb26-89" aria-hidden="true" tabindex="-1"></a>facebook_feature_selection <span class="ot">&lt;-</span></span>
+<span id="cb26-90"><a href="#cb26-90" aria-hidden="true" tabindex="-1"></a>  fb_wordcounts <span class="sc">%&gt;%</span> </span>
+<span id="cb26-91"><a href="#cb26-91" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">user =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-92"><a href="#cb26-92" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fb_sentiment_counts, </span>
+<span id="cb26-93"><a href="#cb26-93" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-94"><a href="#cb26-94" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fb_tweet_afinn,</span>
+<span id="cb26-95"><a href="#cb26-95" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-96"><a href="#cb26-96" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fb_piclinks,</span>
+<span id="cb26-97"><a href="#cb26-97" aria-hidden="true" tabindex="-1"></a>            <span class="at">by=</span><span class="st">&quot;status_id&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-98"><a href="#cb26-98" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(fb_word_predict,</span>
+<span id="cb26-99"><a href="#cb26-99" aria-hidden="true" tabindex="-1"></a>            <span class="at">by =</span> <span class="st">&quot;status_id&quot;</span>)</span>
+<span id="cb26-100"><a href="#cb26-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-101"><a href="#cb26-101" aria-hidden="true" tabindex="-1"></a>both_users <span class="ot">&lt;-</span> </span>
+<span id="cb26-102"><a href="#cb26-102" aria-hidden="true" tabindex="-1"></a>  tiktok_feature_selection <span class="sc">%&gt;%</span> </span>
+<span id="cb26-103"><a href="#cb26-103" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(facebook_feature_selection) <span class="sc">%&gt;%</span></span>
+<span id="cb26-104"><a href="#cb26-104" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_if</span>(is.numeric,coalesce,<span class="dv">0</span>)</span>
+<span id="cb26-105"><a href="#cb26-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-106"><a href="#cb26-106" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb26-107"><a href="#cb26-107" aria-hidden="true" tabindex="-1"></a>index <span class="ot">&lt;-</span> </span>
+<span id="cb26-108"><a href="#cb26-108" aria-hidden="true" tabindex="-1"></a>  <span class="fu">createDataPartition</span>(both_users<span class="sc">$</span>user,</span>
+<span id="cb26-109"><a href="#cb26-109" aria-hidden="true" tabindex="-1"></a>                      <span class="at">p =</span> <span class="fl">0.8</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb26-110"><a href="#cb26-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-111"><a href="#cb26-111" aria-hidden="true" tabindex="-1"></a>for_decisiontree <span class="ot">&lt;-</span></span>
+<span id="cb26-112"><a href="#cb26-112" aria-hidden="true" tabindex="-1"></a>  both_users <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">2</span>,<span class="sc">-</span><span class="dv">3</span>,<span class="sc">-</span><span class="dv">4</span>)</span>
+<span id="cb26-113"><a href="#cb26-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-114"><a href="#cb26-114" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> for_decisiontree[index, ]</span>
+<span id="cb26-115"><a href="#cb26-115" aria-hidden="true" tabindex="-1"></a>test  <span class="ot">&lt;-</span> for_decisiontree[<span class="sc">-</span>index, ]</span>
+<span id="cb26-116"><a href="#cb26-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-117"><a href="#cb26-117" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(train) <span class="ot">&lt;-</span> <span class="fu">make.names</span>(<span class="fu">colnames</span>(train))</span>
+<span id="cb26-118"><a href="#cb26-118" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(test) <span class="ot">&lt;-</span> <span class="fu">make.names</span>(<span class="fu">colnames</span>(test))</span>
+<span id="cb26-119"><a href="#cb26-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-120"><a href="#cb26-120" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb26-121"><a href="#cb26-121" aria-hidden="true" tabindex="-1"></a>simple_model <span class="ot">&lt;-</span> <span class="fu">rpart</span>(user <span class="sc">~</span> ., </span>
+<span id="cb26-122"><a href="#cb26-122" aria-hidden="true" tabindex="-1"></a>                      <span class="at">data =</span> train, <span class="at">method =</span> <span class="st">&quot;class&quot;</span>)</span>
+<span id="cb26-123"><a href="#cb26-123" aria-hidden="true" tabindex="-1"></a><span class="fu">rpart.plot</span>(simple_model, <span class="at">yesno =</span> <span class="dv">2</span>)</span></code></pre></div>
 <p><img src="HW9_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>It seems that the most dominant predictors in the simple model were the presence (or non-presence) of Facebook’s most common words, along with tweet length and the presence of the word “tiktok.” I suspect this will be similar for other models, though perhaps sentiment will play a role too.</p>
 <p>We produce additional models using the bagging, random forests, and gradient boosting methods.</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>bagging_model <span class="ot">&lt;-</span> <span class="fu">train</span>(</span>
@@ -815,19 +872,19 @@ $(document).ready(function () {
 <span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>  <span class="at">cv.folds =</span> <span class="dv">10</span></span>
 <span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <p>We also display four variable importance plots to see which variables each model identified as significant.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(simple_model, <span class="at">num_features =</span> <span class="dv">30</span>) <span class="sc">+</span> </span>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(simple_model, <span class="at">num_features =</span> <span class="dv">25</span>) <span class="sc">+</span> </span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&#39;Simple Decision Tree - Variable Importance Plot&#39;</span>)</span></code></pre></div>
 <p><img src="HW9_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(bagging_model, <span class="at">num_features =</span> <span class="dv">30</span>) <span class="sc">+</span> </span>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(bagging_model, <span class="at">num_features =</span> <span class="dv">25</span>) <span class="sc">+</span> </span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&#39;Bagging - Variable Importance Plot&#39;</span>)</span></code></pre></div>
 <p><img src="HW9_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(rf_model, <span class="at">num_features =</span> <span class="dv">30</span>) <span class="sc">+</span> </span>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(rf_model, <span class="at">num_features =</span> <span class="dv">25</span>) <span class="sc">+</span> </span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&#39;Random Forests - Variable Importance Plot&#39;</span>)</span></code></pre></div>
 <p><img src="HW9_files/figure-html/unnamed-chunk-15-3.png" width="672" /></p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(gbm_model, <span class="at">num_features =</span> <span class="dv">30</span>) <span class="sc">+</span> </span>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(gbm_model, <span class="at">num_features =</span> <span class="dv">25</span>) <span class="sc">+</span> </span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&#39;Gradient Boosting - Variable Importance Plot&#39;</span>)</span></code></pre></div>
 <p><img src="HW9_files/figure-html/unnamed-chunk-15-4.png" width="672" /></p>
-<p>It seems that the simple decision tree placed the most importance on the presence of a picture/link. The bagging model, on the other hand places no importance on this variable. All four methods identified tweet length as strongly predictive of the user. All four heavily weighted anticipation sentiments and AFINN scores.</p>
+<p>It seems that the simple decision tree, random forests model, and gradient boosting model placed the most importance on the presence of the word “kn” and the other commonly used words. The bagging model, on the other hand places little importance on the presence of these words and instead privileges tweet length, AFINN score, and sentiments. All of the ensemble methods identified tweet length as strongly predictive of the user. All four heavily weighted anticipation sentiments and AFINN scores.</p>
 </div>
 <div id="vi.-results-and-discussion" class="section level1">
 <h1>VI. Results and Discussion</h1>
@@ -841,25 +898,25 @@ $(document).ready(function () {
 ## 
 ##           Reference
 ## Prediction    0    1
-##          0 2209  574
-##          1  338 1993
+##          0 2300  108
+##          1  247 2459
 ##                                           
-##                Accuracy : 0.8217          
-##                  95% CI : (0.8109, 0.8321)
+##                Accuracy : 0.9306          
+##                  95% CI : (0.9233, 0.9374)
 ##     No Information Rate : 0.502           
 ##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.6435          
+##                   Kappa : 0.8611          
 ##                                           
-##  Mcnemar&#39;s Test P-Value : 7.16e-15        
+##  Mcnemar&#39;s Test P-Value : 2.402e-13       
 ##                                           
-##               Precision : 0.7937          
-##                  Recall : 0.8673          
-##                      F1 : 0.8289          
+##               Precision : 0.9551          
+##                  Recall : 0.9030          
+##                      F1 : 0.9284          
 ##              Prevalence : 0.4980          
-##          Detection Rate : 0.4320          
-##    Detection Prevalence : 0.5442          
-##       Balanced Accuracy : 0.8218          
+##          Detection Rate : 0.4497          
+##    Detection Prevalence : 0.4709          
+##       Balanced Accuracy : 0.9305          
 ##                                           
 ##        &#39;Positive&#39; Class : 0               
 ## </code></pre>
@@ -868,25 +925,25 @@ $(document).ready(function () {
 ## 
 ##           Reference
 ## Prediction    0    1
-##          0 2462   59
-##          1   85 2508
+##          0 2512    3
+##          1   35 2564
 ##                                           
-##                Accuracy : 0.9718          
-##                  95% CI : (0.9669, 0.9762)
+##                Accuracy : 0.9926          
+##                  95% CI : (0.9898, 0.9947)
 ##     No Information Rate : 0.502           
-##     P-Value [Acc &gt; NIR] : &lt; 2e-16         
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.9437          
+##                   Kappa : 0.9851          
 ##                                           
-##  Mcnemar&#39;s Test P-Value : 0.03722         
+##  Mcnemar&#39;s Test P-Value : 4.934e-07       
 ##                                           
-##               Precision : 0.9766          
-##                  Recall : 0.9666          
-##                      F1 : 0.9716          
+##               Precision : 0.9988          
+##                  Recall : 0.9863          
+##                      F1 : 0.9925          
 ##              Prevalence : 0.4980          
-##          Detection Rate : 0.4814          
-##    Detection Prevalence : 0.4930          
-##       Balanced Accuracy : 0.9718          
+##          Detection Rate : 0.4912          
+##    Detection Prevalence : 0.4918          
+##       Balanced Accuracy : 0.9925          
 ##                                           
 ##        &#39;Positive&#39; Class : 0               
 ## </code></pre>
@@ -895,53 +952,52 @@ $(document).ready(function () {
 ## 
 ##           Reference
 ## Prediction    0    1
-##          0 2429  106
-##          1  118 2461
-##                                           
-##                Accuracy : 0.9562          
-##                  95% CI : (0.9502, 0.9616)
-##     No Information Rate : 0.502           
-##     P-Value [Acc &gt; NIR] : &lt;2e-16          
-##                                           
-##                   Kappa : 0.9124          
-##                                           
-##  Mcnemar&#39;s Test P-Value : 0.4624          
-##                                           
-##               Precision : 0.9582          
-##                  Recall : 0.9537          
-##                      F1 : 0.9559          
-##              Prevalence : 0.4980          
-##          Detection Rate : 0.4750          
-##    Detection Prevalence : 0.4957          
-##       Balanced Accuracy : 0.9562          
-##                                           
-##        &#39;Positive&#39; Class : 0               
+##          0 2504    3
+##          1   43 2564
+##                                          
+##                Accuracy : 0.991          
+##                  95% CI : (0.988, 0.9934)
+##     No Information Rate : 0.502          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
+##                                          
+##                   Kappa : 0.982          
+##                                          
+##  Mcnemar&#39;s Test P-Value : 8.912e-09      
+##                                          
+##               Precision : 0.9988         
+##                  Recall : 0.9831         
+##                      F1 : 0.9909         
+##              Prevalence : 0.4980         
+##          Detection Rate : 0.4896         
+##    Detection Prevalence : 0.4902         
+##       Balanced Accuracy : 0.9910         
+##                                          
+##        &#39;Positive&#39; Class : 0              
 ## </code></pre>
 <p><strong>Gradient Boosting Method - Training Set:</strong></p>
-<pre><code>## Using 979 trees...</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
 ## Prediction    0    1
-##          0 2311  282
-##          1  236 2285
+##          0 2374   55
+##          1  173 2512
 ##                                           
-##                Accuracy : 0.8987          
-##                  95% CI : (0.8901, 0.9068)
+##                Accuracy : 0.9554          
+##                  95% CI : (0.9494, 0.9609)
 ##     No Information Rate : 0.502           
-##     P-Value [Acc &gt; NIR] : &lt; 2e-16         
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.7974          
+##                   Kappa : 0.9108          
 ##                                           
-##  Mcnemar&#39;s Test P-Value : 0.04802         
+##  Mcnemar&#39;s Test P-Value : 9.297e-15       
 ##                                           
-##               Precision : 0.8912          
-##                  Recall : 0.9073          
-##                      F1 : 0.8992          
+##               Precision : 0.9774          
+##                  Recall : 0.9321          
+##                      F1 : 0.9542          
 ##              Prevalence : 0.4980          
-##          Detection Rate : 0.4519          
-##    Detection Prevalence : 0.5070          
-##       Balanced Accuracy : 0.8987          
+##          Detection Rate : 0.4642          
+##    Detection Prevalence : 0.4750          
+##       Balanced Accuracy : 0.9553          
 ##                                           
 ##        &#39;Positive&#39; Class : 0               
 ## </code></pre>
@@ -966,10 +1022,10 @@ accuracy
 Simple
 </td>
 <td style="text-align:right;">
-912
+355
 </td>
 <td style="text-align:right;">
-0.8216660
+0.9305827
 </td>
 </tr>
 <tr>
@@ -977,10 +1033,10 @@ Simple
 Bagging
 </td>
 <td style="text-align:right;">
-144
+38
 </td>
 <td style="text-align:right;">
-0.9718420
+0.9925694
 </td>
 </tr>
 <tr>
@@ -988,10 +1044,10 @@ Bagging
 Random Forests
 </td>
 <td style="text-align:right;">
-224
+46
 </td>
 <td style="text-align:right;">
-0.9561987
+0.9910051
 </td>
 </tr>
 <tr>
@@ -999,82 +1055,89 @@ Random Forests
 Gradient Boosting
 </td>
 <td style="text-align:right;">
-518
+228
 </td>
 <td style="text-align:right;">
-0.8987094
+0.9554165
 </td>
 </tr>
 </tbody>
 </table>
-<p>The rankings for accuracy on the training set are as follows: 1. Bagging method 2. Random forests 3. Gradient boosting method 4. Simple decision tree</p>
+<p>The rankings for accuracy on the training set are as follows:</p>
+<ol style="list-style-type: decimal">
+<li><p>Bagging method</p></li>
+<li><p>Random forests</p></li>
+<li><p>Gradient boosting method</p></li>
+<li><p>Simple decision tree</p></li>
+</ol>
+<p>The bagging and random forests methods achieved impressive accuracy on the training set, both able to correctly classify more than 99% of the tweets.</p>
 <p>We show the residual sum of squares for all four models on the training set below.</p>
-<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>rss_simple_train <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_train<span class="sc">-</span>simple_pred_train)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>rss_bagging_train <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_train<span class="sc">-</span>bagging_pred_train)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>rss_rf_train <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_train<span class="sc">-</span>rf_pred_train)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>rss_gb_train <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_train<span class="sc">-</span>gb_pred_train)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">&quot;Residual Sum of Squares on Training Set</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Simple model: &quot;</span>, rss_simple_train, </span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Bagging model: &quot;</span>, rss_bagging_train, </span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Random forests model: &quot;</span>, rss_rf_train, </span>
-<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Gradient boosting model: &quot;</span>, rss_gb_train))</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>rss_simple_train <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_train<span class="sc">-</span>simple_pred_train)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>rss_bagging_train <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_train<span class="sc">-</span>bagging_pred_train)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>rss_rf_train <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_train<span class="sc">-</span>rf_pred_train)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>rss_gb_train <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_train<span class="sc">-</span>gb_pred_train)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">&quot;Residual Sum of Squares on Training Set</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Simple decision tree: &quot;</span>, <span class="fu">round</span>(rss_simple_train, <span class="dv">2</span>), </span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Bagging model: &quot;</span>, <span class="fu">round</span>(rss_bagging_train, <span class="dv">2</span>), </span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Random forests model: &quot;</span>, <span class="fu">round</span>(rss_rf_train, <span class="dv">2</span>), </span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Gradient boosting model: &quot;</span>, <span class="fu">round</span>(rss_gb_train, <span class="dv">2</span>)))</span></code></pre></div>
 <pre><code>## Residual Sum of Squares on Training Set
 ## 
-## Simple model: 743.785102129366
-## Bagging model: 147.807476444236
-## Random forests model: 224
-## Gradient boosting model: 390.0864919704</code></pre>
-<p>The bagging model performed the best on the training set, followed by the random forests method, the gradient boosting method, and the simple model in last place.</p>
+## Simple decision tree: 299.52
+## Bagging model: 56.46
+## Random forests model: 46
+## Gradient boosting model: 187.74</code></pre>
+<p>The random forests method had the lowest RSS, despite the bagging method achieving higher predictive accuracy on the training set. The bagging method performed second best, followed by the gradient boosting method and simple decision tree.</p>
 <p>Now, we show confusion matrices for the test set.</p>
 </div>
 <div id="test-set-performance" class="section level2">
 <h2>Test Set Performance</h2>
 <p><strong>Simple Decision Tree - Test Set:</strong></p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>actual_test <span class="ot">&lt;-</span> test<span class="sc">$</span>user</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>simple_pred_test <span class="ot">&lt;-</span> </span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(simple_model, <span class="at">newdata =</span> test) <span class="sc">%&gt;%</span> </span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.vector</span>()</span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>simple_test_confusion <span class="ot">&lt;-</span> </span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">confusionMatrix</span>(<span class="at">data =</span> <span class="fu">factor</span>(<span class="fu">round</span>(simple_pred_test)),</span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">reference =</span> <span class="fu">factor</span>(actual_test), <span class="at">mode =</span> <span class="st">&quot;prec_recall&quot;</span>)</span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>simple_test_errors <span class="ot">&lt;-</span> </span>
-<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>  simple_test_confusion<span class="sc">$</span>table[<span class="dv">2</span>] <span class="sc">+</span></span>
-<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>  simple_test_confusion<span class="sc">$</span>table[<span class="dv">3</span>]</span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>simple_test_accuracy <span class="ot">&lt;-</span></span>
-<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.numeric</span>(simple_test_confusion<span class="sc">$</span>overall[<span class="dv">1</span>])</span>
-<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a>simple_test_confusion</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>actual_test <span class="ot">&lt;-</span> test<span class="sc">$</span>user</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>simple_pred_test <span class="ot">&lt;-</span> </span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(simple_model, <span class="at">newdata =</span> test) <span class="sc">%&gt;%</span> </span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.vector</span>()</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>simple_test_confusion <span class="ot">&lt;-</span> </span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">confusionMatrix</span>(<span class="at">data =</span> <span class="fu">factor</span>(<span class="fu">round</span>(simple_pred_test)),</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">reference =</span> <span class="fu">factor</span>(actual_test), <span class="at">mode =</span> <span class="st">&quot;prec_recall&quot;</span>)</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>simple_test_errors <span class="ot">&lt;-</span> </span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>  simple_test_confusion<span class="sc">$</span>table[<span class="dv">2</span>] <span class="sc">+</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>  simple_test_confusion<span class="sc">$</span>table[<span class="dv">3</span>]</span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>simple_test_accuracy <span class="ot">&lt;-</span></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.numeric</span>(simple_test_confusion<span class="sc">$</span>overall[<span class="dv">1</span>])</span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>simple_test_confusion</span></code></pre></div>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
 ## Prediction   0   1
-##          0 563 135
-##          1  88 492
+##          0 583  23
+##          1  68 604
 ##                                           
-##                Accuracy : 0.8255          
-##                  95% CI : (0.8036, 0.8459)
+##                Accuracy : 0.9288          
+##                  95% CI : (0.9133, 0.9423)
 ##     No Information Rate : 0.5094          
 ##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.6504          
+##                   Kappa : 0.8577          
 ##                                           
-##  Mcnemar&#39;s Test P-Value : 0.002067        
+##  Mcnemar&#39;s Test P-Value : 3.979e-06       
 ##                                           
-##               Precision : 0.8066          
-##                  Recall : 0.8648          
-##                      F1 : 0.8347          
+##               Precision : 0.9620          
+##                  Recall : 0.8955          
+##                      F1 : 0.9276          
 ##              Prevalence : 0.5094          
-##          Detection Rate : 0.4405          
-##    Detection Prevalence : 0.5462          
-##       Balanced Accuracy : 0.8248          
+##          Detection Rate : 0.4562          
+##    Detection Prevalence : 0.4742          
+##       Balanced Accuracy : 0.9294          
 ##                                           
 ##        &#39;Positive&#39; Class : 0               
 ## </code></pre>
@@ -1083,25 +1146,25 @@ Gradient Boosting
 ## 
 ##           Reference
 ## Prediction   0   1
-##          0 550 102
-##          1 101 525
+##          0 603  30
+##          1  48 597
 ##                                           
-##                Accuracy : 0.8412          
-##                  95% CI : (0.8199, 0.8608)
+##                Accuracy : 0.939           
+##                  95% CI : (0.9244, 0.9515)
 ##     No Information Rate : 0.5094          
-##     P-Value [Acc &gt; NIR] : &lt;2e-16          
+##     P-Value [Acc &gt; NIR] : &lt; 2e-16         
 ##                                           
-##                   Kappa : 0.6822          
+##                   Kappa : 0.878           
 ##                                           
-##  Mcnemar&#39;s Test P-Value : 1               
+##  Mcnemar&#39;s Test P-Value : 0.05425         
 ##                                           
-##               Precision : 0.8436          
-##                  Recall : 0.8449          
-##                      F1 : 0.8442          
+##               Precision : 0.9526          
+##                  Recall : 0.9263          
+##                      F1 : 0.9393          
 ##              Prevalence : 0.5094          
-##          Detection Rate : 0.4304          
-##    Detection Prevalence : 0.5102          
-##       Balanced Accuracy : 0.8411          
+##          Detection Rate : 0.4718          
+##    Detection Prevalence : 0.4953          
+##       Balanced Accuracy : 0.9392          
 ##                                           
 ##        &#39;Positive&#39; Class : 0               
 ## </code></pre>
@@ -1110,53 +1173,52 @@ Gradient Boosting
 ## 
 ##           Reference
 ## Prediction   0   1
-##          0 572  92
-##          1  79 535
+##          0 600  23
+##          1  51 604
 ##                                           
-##                Accuracy : 0.8662          
-##                  95% CI : (0.8463, 0.8844)
+##                Accuracy : 0.9421          
+##                  95% CI : (0.9279, 0.9543)
 ##     No Information Rate : 0.5094          
-##     P-Value [Acc &gt; NIR] : &lt;2e-16          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.7322          
+##                   Kappa : 0.8842          
 ##                                           
-##  Mcnemar&#39;s Test P-Value : 0.3588          
+##  Mcnemar&#39;s Test P-Value : 0.001697        
 ##                                           
-##               Precision : 0.8614          
-##                  Recall : 0.8786          
-##                      F1 : 0.8700          
+##               Precision : 0.9631          
+##                  Recall : 0.9217          
+##                      F1 : 0.9419          
 ##              Prevalence : 0.5094          
-##          Detection Rate : 0.4476          
-##    Detection Prevalence : 0.5196          
-##       Balanced Accuracy : 0.8660          
+##          Detection Rate : 0.4695          
+##    Detection Prevalence : 0.4875          
+##       Balanced Accuracy : 0.9425          
 ##                                           
 ##        &#39;Positive&#39; Class : 0               
 ## </code></pre>
 <p><strong>Gradient Boosting Method - Test Set:</strong></p>
-<pre><code>## Using 979 trees...</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
 ## Prediction   0   1
-##          0 569  84
-##          1  82 543
+##          0 596  22
+##          1  55 605
 ##                                           
-##                Accuracy : 0.8701          
-##                  95% CI : (0.8504, 0.8881)
+##                Accuracy : 0.9397          
+##                  95% CI : (0.9253, 0.9522)
 ##     No Information Rate : 0.5094          
-##     P-Value [Acc &gt; NIR] : &lt;2e-16          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.7401          
+##                   Kappa : 0.8796          
 ##                                           
-##  Mcnemar&#39;s Test P-Value : 0.9381          
+##  Mcnemar&#39;s Test P-Value : 0.0002656       
 ##                                           
-##               Precision : 0.8714          
-##                  Recall : 0.8740          
-##                      F1 : 0.8727          
+##               Precision : 0.9644          
+##                  Recall : 0.9155          
+##                      F1 : 0.9393          
 ##              Prevalence : 0.5094          
-##          Detection Rate : 0.4452          
-##    Detection Prevalence : 0.5110          
-##       Balanced Accuracy : 0.8700          
+##          Detection Rate : 0.4664          
+##    Detection Prevalence : 0.4836          
+##       Balanced Accuracy : 0.9402          
 ##                                           
 ##        &#39;Positive&#39; Class : 0               
 ## </code></pre>
@@ -1181,10 +1243,10 @@ accuracy
 Simple
 </td>
 <td style="text-align:right;">
-223
+91
 </td>
 <td style="text-align:right;">
-0.8255086
+0.9287950
 </td>
 </tr>
 <tr>
@@ -1192,10 +1254,10 @@ Simple
 Bagging
 </td>
 <td style="text-align:right;">
-203
+78
 </td>
 <td style="text-align:right;">
-0.8411581
+0.9389671
 </td>
 </tr>
 <tr>
@@ -1203,10 +1265,10 @@ Bagging
 Random Forests
 </td>
 <td style="text-align:right;">
-171
+74
 </td>
 <td style="text-align:right;">
-0.8661972
+0.9420970
 </td>
 </tr>
 <tr>
@@ -1214,40 +1276,40 @@ Random Forests
 Gradient Boosting
 </td>
 <td style="text-align:right;">
-166
+77
 </td>
 <td style="text-align:right;">
-0.8701095
+0.9397496
 </td>
 </tr>
 </tbody>
 </table>
 <p>The rankings for accuracy on the test set are as follows:</p>
 <ol style="list-style-type: decimal">
-<li>Random forests</li>
-<li>Gradient boosting method</li>
-<li>Bagging method</li>
-<li>Simple decision tree</li>
+<li><p>Gradient boosting method</p></li>
+<li><p>Random forests method</p></li>
+<li><p>Bagging method</p></li>
+<li><p>Simple decision tree</p></li>
 </ol>
-<p>Now, we show the residual sum of squares for each model with respect to the test set.</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>rss_simple_test <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_test<span class="sc">-</span>simple_pred_test)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>rss_bagging_test <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_test<span class="sc">-</span>bagging_pred_test)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>rss_rf_test <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_test<span class="sc">-</span>rf_pred_test)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>rss_gb_test <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_test<span class="sc">-</span>gb_pred_test)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">&quot;Residual Sum of Squares on Test Set</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Simple model: &quot;</span>, rss_simple_test, </span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Bagged model: &quot;</span>, rss_bagging_test, </span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Random forests model: &quot;</span>, rss_rf_test, </span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Gradient boost model: &quot;</span>, rss_gb_test))</span></code></pre></div>
+<p>It is worth noting though, that the differences in accuracy between the first three is incredibly small, so perhaps the tie may be broken using RSS with respect to the test set:</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>rss_simple_test <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_test<span class="sc">-</span>simple_pred_test)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>rss_bagging_test <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_test<span class="sc">-</span>bagging_pred_test)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>rss_rf_test <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_test<span class="sc">-</span>rf_pred_test)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>rss_gb_test <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual_test<span class="sc">-</span>gb_pred_test)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">&quot;Residual Sum of Squares on Test Set</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Simple decision tree: &quot;</span>, <span class="fu">round</span>(rss_simple_test, <span class="dv">2</span>), </span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Bagging model: &quot;</span>, <span class="fu">round</span>(rss_bagging_test, <span class="dv">2</span>), </span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Random forests model: &quot;</span>, <span class="fu">round</span>(rss_rf_test, <span class="dv">2</span>), </span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>           <span class="st">&quot;</span><span class="sc">\n</span><span class="st">Gradient boosting model: &quot;</span>, <span class="fu">round</span>(rss_gb_test, <span class="dv">2</span>)))</span></code></pre></div>
 <pre><code>## Residual Sum of Squares on Test Set
 ## 
-## Simple model: 183.394951302835
-## Bagged model: 139.545475352265
-## Random forests model: 171
-## Gradient boost model: 131.566142920475</code></pre>
-<p>The random forests model performed the best on the test set even though it was only second best for the training set. However, that may be an indication that the bagging model was overfit to the training data, which caused it to perform worse on the test set than the random forests model.</p>
-<p>In sum, it seems that the best model is the random forests model, with a test set accuracy score of 86.62%.</p>
+## Simple decision tree: 77.23
+## Bagging model: 58.6
+## Random forests model: 74
+## Gradient boosting model: 60.05</code></pre>
+<p>The bagging model had the lowest RSS on the test set even though it was only second best for the training set. The gradient boosting model had the second lowest RSS, followed by random forests and the simple decision tree.</p>
+<p>In sum, it seems that the best model would be either the bagging model or the gradient boosting model, but this is nitpicking because all of the ensemble methods performed very well.</p>
 </div>
 </div>
 <div id="vii.-conclusion" class="section level1">
