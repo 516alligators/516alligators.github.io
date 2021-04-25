@@ -1,9 +1,5 @@
 ---
-title: "index"
-author: "Ammar M. Plumber"
-date: "4/16/2021"
+title: "Welcome to My Website"
 output: html_document
 ---
-
-Welcome to my website.
 
