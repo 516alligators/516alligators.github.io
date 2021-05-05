@@ -7,6 +7,8 @@ navbar:
       href: about.html
     - text: "HW 09"
       href: HW9.html
+    - text: "Final Project"
+    - href: Final-Project---Alligators.html
     
 output:
   html_document:
