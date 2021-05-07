@@ -82,7 +82,10 @@ inclass <- subset(node, select = -c(2:41) )
 inclass <- na.omit(inclass)
 absent_people <- tibble (ID= c(3,4,8,9,10,11,12,13,14,16,19,21,22,25,26,27,29,37,39), trait = NA) #people who didnt take the survey 
 nodelist <-rbind (inclass, absent_people) %>% arrange(`ID`) #combine  people took the survey and people didn't take the survey
+```
 
+
+```{r, message = FALSE, warning = FALSE}
 #edgelist head
 edgelist %>% head()
 #nodelist head
