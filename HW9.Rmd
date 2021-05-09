@@ -88,12 +88,12 @@ Now, we import the tweets that we pulled using the get_timeline() function and s
 
 tiktok <-
   read_csv('tiktok.csv') %>% 
-  select(status_id, source, text, created_at) %>% 
+  dplyr::select(status_id, source, text, created_at) %>% 
   as.data.frame()
 
 facebook <-
   read_csv('facebook.csv') %>% 
-  select(status_id, source, text, created_at)
+  dplyr::select(status_id, source, text, created_at)
 
 nrc <- read_rds("nrc.rds")
 
@@ -448,14 +448,14 @@ fb_piclinks <-
   filter(!str_detect(text, '^"')) %>%
   mutate(picture_link = ifelse(str_detect(text, "t.co"),
                          1, 0)) %>% 
-  select(1,5)
+  dplyr::select(1,5)
 
 tiktok_piclinks <- 
   tiktok %>%
   filter(!str_detect(text, '^"')) %>%
   mutate(picture_link = ifelse(str_detect(text, "t.co"),
                          1, 0)) %>% 
-  select(1,5)
+  dplyr::select(1,5)
 
 fb_tweet_afinn <- 
   fb_afinn %>% 
@@ -522,7 +522,7 @@ index <-
                       p = 0.8, list = FALSE)
 
 for_decisiontree <-
-  both_users %>% select(-1,-2,-3,-4)
+  both_users %>% dplyr::select(-1,-2,-3,-4)
 
 train <- for_decisiontree[index, ]
 test  <- for_decisiontree[-index, ]
@@ -613,7 +613,7 @@ actual_train <- train$user
 simple_pred_train <- 
   predict(simple_model, newdata = train) %>% 
   as_tibble() %>% 
-  select(2) %>% 
+  dplyr::select(2) %>% 
   unlist() %>% 
   as.vector()
 
@@ -760,7 +760,7 @@ actual_test <- test$user
 simple_pred_test <- 
   predict(simple_model, newdata = test) %>% 
   as_tibble() %>% 
-  select(2) %>% 
+  dplyr::select(2) %>% 
   unlist() %>% 
   as.vector()
 

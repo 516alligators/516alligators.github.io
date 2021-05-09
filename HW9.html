@@ -406,12 +406,12 @@ $(document).ready(function () {
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>tiktok <span class="ot">&lt;-</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_csv</span>(<span class="st">&#39;tiktok.csv&#39;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(status_id, source, text, created_at) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(status_id, source, text, created_at) <span class="sc">%&gt;%</span> </span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>facebook <span class="ot">&lt;-</span></span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_csv</span>(<span class="st">&#39;facebook.csv&#39;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(status_id, source, text, created_at)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(status_id, source, text, created_at)</span>
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>nrc <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">&quot;nrc.rds&quot;</span>)</span>
 <span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
@@ -751,14 +751,14 @@ $(document).ready(function () {
 <span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">picture_link =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
 <span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>                         <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">5</span>)</span>
+<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">5</span>)</span>
 <span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>tiktok_piclinks <span class="ot">&lt;-</span> </span>
 <span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>  tiktok <span class="sc">%&gt;%</span></span>
 <span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(text, <span class="st">&#39;^&quot;&#39;</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">picture_link =</span> <span class="fu">ifelse</span>(<span class="fu">str_detect</span>(text, <span class="st">&quot;t.co&quot;</span>),</span>
 <span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>                         <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">5</span>)</span>
+<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">5</span>)</span>
 <span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a>fb_tweet_afinn <span class="ot">&lt;-</span> </span>
 <span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a>  fb_afinn <span class="sc">%&gt;%</span> </span>
@@ -825,7 +825,7 @@ $(document).ready(function () {
 <span id="cb26-109"><a href="#cb26-109" aria-hidden="true" tabindex="-1"></a>                      <span class="at">p =</span> <span class="fl">0.8</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb26-110"><a href="#cb26-110" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-111"><a href="#cb26-111" aria-hidden="true" tabindex="-1"></a>for_decisiontree <span class="ot">&lt;-</span></span>
-<span id="cb26-112"><a href="#cb26-112" aria-hidden="true" tabindex="-1"></a>  both_users <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">2</span>,<span class="sc">-</span><span class="dv">3</span>,<span class="sc">-</span><span class="dv">4</span>)</span>
+<span id="cb26-112"><a href="#cb26-112" aria-hidden="true" tabindex="-1"></a>  both_users <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">2</span>,<span class="sc">-</span><span class="dv">3</span>,<span class="sc">-</span><span class="dv">4</span>)</span>
 <span id="cb26-113"><a href="#cb26-113" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-114"><a href="#cb26-114" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> for_decisiontree[index, ]</span>
 <span id="cb26-115"><a href="#cb26-115" aria-hidden="true" tabindex="-1"></a>test  <span class="ot">&lt;-</span> for_decisiontree[<span class="sc">-</span>index, ]</span>
@@ -906,25 +906,25 @@ $(document).ready(function () {
 ## Prediction    0    1
 ##          0 2300  108
 ##          1  247 2459
-##                                           
-##                Accuracy : 0.9306          
-##                  95% CI : (0.9233, 0.9374)
-##     No Information Rate : 0.502           
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.8611          
-##                                           
-##  Mcnemar&#39;s Test P-Value : 2.402e-13       
-##                                           
-##               Precision : 0.9551          
-##                  Recall : 0.9030          
-##                      F1 : 0.9284          
-##              Prevalence : 0.4980          
-##          Detection Rate : 0.4497          
-##    Detection Prevalence : 0.4709          
-##       Balanced Accuracy : 0.9305          
-##                                           
-##        &#39;Positive&#39; Class : 0               
+##                                                
+##                Accuracy : 0.9306               
+##                  95% CI : (0.9233, 0.9374)     
+##     No Information Rate : 0.502                
+##     P-Value [Acc &gt; NIR] : &lt; 0.00000000000000022
+##                                                
+##                   Kappa : 0.8611               
+##                                                
+##  Mcnemar&#39;s Test P-Value : 0.0000000000002402   
+##                                                
+##               Precision : 0.9551               
+##                  Recall : 0.9030               
+##                      F1 : 0.9284               
+##              Prevalence : 0.4980               
+##          Detection Rate : 0.4497               
+##    Detection Prevalence : 0.4709               
+##       Balanced Accuracy : 0.9305               
+##                                                
+##        &#39;Positive&#39; Class : 0                    
 ## </code></pre>
 <p><strong>Bagging Method - Training Set:</strong></p>
 <pre><code>## Confusion Matrix and Statistics
@@ -933,25 +933,25 @@ $(document).ready(function () {
 ## Prediction    0    1
 ##          0 2512    3
 ##          1   35 2564
-##                                           
-##                Accuracy : 0.9926          
-##                  95% CI : (0.9898, 0.9947)
-##     No Information Rate : 0.502           
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.9851          
-##                                           
-##  Mcnemar&#39;s Test P-Value : 4.934e-07       
-##                                           
-##               Precision : 0.9988          
-##                  Recall : 0.9863          
-##                      F1 : 0.9925          
-##              Prevalence : 0.4980          
-##          Detection Rate : 0.4912          
-##    Detection Prevalence : 0.4918          
-##       Balanced Accuracy : 0.9925          
-##                                           
-##        &#39;Positive&#39; Class : 0               
+##                                                
+##                Accuracy : 0.9926               
+##                  95% CI : (0.9898, 0.9947)     
+##     No Information Rate : 0.502                
+##     P-Value [Acc &gt; NIR] : &lt; 0.00000000000000022
+##                                                
+##                   Kappa : 0.9851               
+##                                                
+##  Mcnemar&#39;s Test P-Value : 0.0000004934         
+##                                                
+##               Precision : 0.9988               
+##                  Recall : 0.9863               
+##                      F1 : 0.9925               
+##              Prevalence : 0.4980               
+##          Detection Rate : 0.4912               
+##    Detection Prevalence : 0.4918               
+##       Balanced Accuracy : 0.9925               
+##                                                
+##        &#39;Positive&#39; Class : 0                    
 ## </code></pre>
 <p><strong>Random Forests Method - Training Set:</strong></p>
 <pre><code>## Confusion Matrix and Statistics
@@ -960,25 +960,25 @@ $(document).ready(function () {
 ## Prediction    0    1
 ##          0 2504    3
 ##          1   43 2564
-##                                          
-##                Accuracy : 0.991          
-##                  95% CI : (0.988, 0.9934)
-##     No Information Rate : 0.502          
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
-##                                          
-##                   Kappa : 0.982          
-##                                          
-##  Mcnemar&#39;s Test P-Value : 8.912e-09      
-##                                          
-##               Precision : 0.9988         
-##                  Recall : 0.9831         
-##                      F1 : 0.9909         
-##              Prevalence : 0.4980         
-##          Detection Rate : 0.4896         
-##    Detection Prevalence : 0.4902         
-##       Balanced Accuracy : 0.9910         
-##                                          
-##        &#39;Positive&#39; Class : 0              
+##                                                
+##                Accuracy : 0.991                
+##                  95% CI : (0.988, 0.9934)      
+##     No Information Rate : 0.502                
+##     P-Value [Acc &gt; NIR] : &lt; 0.00000000000000022
+##                                                
+##                   Kappa : 0.982                
+##                                                
+##  Mcnemar&#39;s Test P-Value : 0.000000008912       
+##                                                
+##               Precision : 0.9988               
+##                  Recall : 0.9831               
+##                      F1 : 0.9909               
+##              Prevalence : 0.4980               
+##          Detection Rate : 0.4896               
+##    Detection Prevalence : 0.4902               
+##       Balanced Accuracy : 0.9910               
+##                                                
+##        &#39;Positive&#39; Class : 0                    
 ## </code></pre>
 <p><strong>Gradient Boosting Method - Training Set:</strong></p>
 <pre><code>## Confusion Matrix and Statistics
@@ -987,25 +987,25 @@ $(document).ready(function () {
 ## Prediction    0    1
 ##          0 2374   55
 ##          1  173 2512
-##                                           
-##                Accuracy : 0.9554          
-##                  95% CI : (0.9494, 0.9609)
-##     No Information Rate : 0.502           
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.9108          
-##                                           
-##  Mcnemar&#39;s Test P-Value : 9.297e-15       
-##                                           
-##               Precision : 0.9774          
-##                  Recall : 0.9321          
-##                      F1 : 0.9542          
-##              Prevalence : 0.4980          
-##          Detection Rate : 0.4642          
-##    Detection Prevalence : 0.4750          
-##       Balanced Accuracy : 0.9553          
-##                                           
-##        &#39;Positive&#39; Class : 0               
+##                                                
+##                Accuracy : 0.9554               
+##                  95% CI : (0.9494, 0.9609)     
+##     No Information Rate : 0.502                
+##     P-Value [Acc &gt; NIR] : &lt; 0.00000000000000022
+##                                                
+##                   Kappa : 0.9108               
+##                                                
+##  Mcnemar&#39;s Test P-Value : 0.000000000000009297 
+##                                                
+##               Precision : 0.9774               
+##                  Recall : 0.9321               
+##                      F1 : 0.9542               
+##              Prevalence : 0.4980               
+##          Detection Rate : 0.4642               
+##    Detection Prevalence : 0.4750               
+##       Balanced Accuracy : 0.9553               
+##                                                
+##        &#39;Positive&#39; Class : 0                    
 ## </code></pre>
 <p><strong>Performance Summary and RSS</strong></p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
@@ -1105,7 +1105,7 @@ Gradient Boosting
 <span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>simple_pred_test <span class="ot">&lt;-</span> </span>
 <span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(simple_model, <span class="at">newdata =</span> test) <span class="sc">%&gt;%</span> </span>
 <span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unlist</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.vector</span>()</span>
 <span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a></span>
@@ -1127,25 +1127,25 @@ Gradient Boosting
 ## Prediction   0   1
 ##          0 583  23
 ##          1  68 604
-##                                           
-##                Accuracy : 0.9288          
-##                  95% CI : (0.9133, 0.9423)
-##     No Information Rate : 0.5094          
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.8577          
-##                                           
-##  Mcnemar&#39;s Test P-Value : 3.979e-06       
-##                                           
-##               Precision : 0.9620          
-##                  Recall : 0.8955          
-##                      F1 : 0.9276          
-##              Prevalence : 0.5094          
-##          Detection Rate : 0.4562          
-##    Detection Prevalence : 0.4742          
-##       Balanced Accuracy : 0.9294          
-##                                           
-##        &#39;Positive&#39; Class : 0               
+##                                                
+##                Accuracy : 0.9288               
+##                  95% CI : (0.9133, 0.9423)     
+##     No Information Rate : 0.5094               
+##     P-Value [Acc &gt; NIR] : &lt; 0.00000000000000022
+##                                                
+##                   Kappa : 0.8577               
+##                                                
+##  Mcnemar&#39;s Test P-Value : 0.000003979          
+##                                                
+##               Precision : 0.9620               
+##                  Recall : 0.8955               
+##                      F1 : 0.9276               
+##              Prevalence : 0.5094               
+##          Detection Rate : 0.4562               
+##    Detection Prevalence : 0.4742               
+##       Balanced Accuracy : 0.9294               
+##                                                
+##        &#39;Positive&#39; Class : 0                    
 ## </code></pre>
 <p><strong>Bagging Method - Test Set:</strong></p>
 <pre><code>## Confusion Matrix and Statistics
@@ -1154,25 +1154,25 @@ Gradient Boosting
 ## Prediction   0   1
 ##          0 603  30
 ##          1  48 597
-##                                           
-##                Accuracy : 0.939           
-##                  95% CI : (0.9244, 0.9515)
-##     No Information Rate : 0.5094          
-##     P-Value [Acc &gt; NIR] : &lt; 2e-16         
-##                                           
-##                   Kappa : 0.878           
-##                                           
-##  Mcnemar&#39;s Test P-Value : 0.05425         
-##                                           
-##               Precision : 0.9526          
-##                  Recall : 0.9263          
-##                      F1 : 0.9393          
-##              Prevalence : 0.5094          
-##          Detection Rate : 0.4718          
-##    Detection Prevalence : 0.4953          
-##       Balanced Accuracy : 0.9392          
-##                                           
-##        &#39;Positive&#39; Class : 0               
+##                                               
+##                Accuracy : 0.939               
+##                  95% CI : (0.9244, 0.9515)    
+##     No Information Rate : 0.5094              
+##     P-Value [Acc &gt; NIR] : &lt; 0.0000000000000002
+##                                               
+##                   Kappa : 0.878               
+##                                               
+##  Mcnemar&#39;s Test P-Value : 0.05425             
+##                                               
+##               Precision : 0.9526              
+##                  Recall : 0.9263              
+##                      F1 : 0.9393              
+##              Prevalence : 0.5094              
+##          Detection Rate : 0.4718              
+##    Detection Prevalence : 0.4953              
+##       Balanced Accuracy : 0.9392              
+##                                               
+##        &#39;Positive&#39; Class : 0                   
 ## </code></pre>
 <p><strong>Random Forests Method - Test Set:</strong></p>
 <pre><code>## Confusion Matrix and Statistics
@@ -1181,25 +1181,25 @@ Gradient Boosting
 ## Prediction   0   1
 ##          0 600  23
 ##          1  51 604
-##                                           
-##                Accuracy : 0.9421          
-##                  95% CI : (0.9279, 0.9543)
-##     No Information Rate : 0.5094          
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.8842          
-##                                           
-##  Mcnemar&#39;s Test P-Value : 0.001697        
-##                                           
-##               Precision : 0.9631          
-##                  Recall : 0.9217          
-##                      F1 : 0.9419          
-##              Prevalence : 0.5094          
-##          Detection Rate : 0.4695          
-##    Detection Prevalence : 0.4875          
-##       Balanced Accuracy : 0.9425          
-##                                           
-##        &#39;Positive&#39; Class : 0               
+##                                                
+##                Accuracy : 0.9421               
+##                  95% CI : (0.9279, 0.9543)     
+##     No Information Rate : 0.5094               
+##     P-Value [Acc &gt; NIR] : &lt; 0.00000000000000022
+##                                                
+##                   Kappa : 0.8842               
+##                                                
+##  Mcnemar&#39;s Test P-Value : 0.001697             
+##                                                
+##               Precision : 0.9631               
+##                  Recall : 0.9217               
+##                      F1 : 0.9419               
+##              Prevalence : 0.5094               
+##          Detection Rate : 0.4695               
+##    Detection Prevalence : 0.4875               
+##       Balanced Accuracy : 0.9425               
+##                                                
+##        &#39;Positive&#39; Class : 0                    
 ## </code></pre>
 <p><strong>Gradient Boosting Method - Test Set:</strong></p>
 <pre><code>## Confusion Matrix and Statistics
@@ -1208,25 +1208,25 @@ Gradient Boosting
 ## Prediction   0   1
 ##          0 596  22
 ##          1  55 605
-##                                           
-##                Accuracy : 0.9397          
-##                  95% CI : (0.9253, 0.9522)
-##     No Information Rate : 0.5094          
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.8796          
-##                                           
-##  Mcnemar&#39;s Test P-Value : 0.0002656       
-##                                           
-##               Precision : 0.9644          
-##                  Recall : 0.9155          
-##                      F1 : 0.9393          
-##              Prevalence : 0.5094          
-##          Detection Rate : 0.4664          
-##    Detection Prevalence : 0.4836          
-##       Balanced Accuracy : 0.9402          
-##                                           
-##        &#39;Positive&#39; Class : 0               
+##                                                
+##                Accuracy : 0.9397               
+##                  95% CI : (0.9253, 0.9522)     
+##     No Information Rate : 0.5094               
+##     P-Value [Acc &gt; NIR] : &lt; 0.00000000000000022
+##                                                
+##                   Kappa : 0.8796               
+##                                                
+##  Mcnemar&#39;s Test P-Value : 0.0002656            
+##                                                
+##               Precision : 0.9644               
+##                  Recall : 0.9155               
+##                      F1 : 0.9393               
+##              Prevalence : 0.5094               
+##          Detection Rate : 0.4664               
+##    Detection Prevalence : 0.4836               
+##       Balanced Accuracy : 0.9402               
+##                                                
+##        &#39;Positive&#39; Class : 0                    
 ## </code></pre>
 <p><strong>Performance Summary and RSS</strong></p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
